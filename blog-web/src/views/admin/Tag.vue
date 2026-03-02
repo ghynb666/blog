@@ -43,7 +43,10 @@ const rules = { name: [{ required: true, message: '请输入名称', trigger: 'b
 
 const loadData = async () => {
   loading.value = true
-  try { list.value = await api.list() } finally { loading.value = false }
+  try {
+    const res = await api.list()
+    list.value = res.data || []
+  } finally { loading.value = false }
 }
 
 const handleAdd = () => {

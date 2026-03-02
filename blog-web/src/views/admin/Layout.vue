@@ -54,7 +54,7 @@ onMounted(() => {
 const handleCommand = cmd => {
   if (cmd === 'logout') {
     userStore.logout()
-    router.push('/login')
+    router.push('/admin/login')
   }
 }
 </script>

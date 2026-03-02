@@ -35,4 +35,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         vo.setUserInfo(LoginVO.UserInfo.fromUser(user));
         return vo;
     }
+
+    @Override
+    public User getByToken(String token) {
+        Long userId = jwtUtil.getUserId(token);
+        return getById(userId);
+    }
 }

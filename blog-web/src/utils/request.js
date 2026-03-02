@@ -24,7 +24,7 @@ request.interceptors.response.use(
     ElMessage.error(msg)
     if (error.response?.status === 401) {
       localStorage.removeItem('token')
-      window.location.href = '/login'
+      window.location.href = '/admin/login'
     }
     return Promise.reject(error)
   }

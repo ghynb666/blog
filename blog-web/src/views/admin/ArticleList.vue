@@ -47,15 +47,16 @@ const loadData = async () => {
   loading.value = true
   try {
     const res = await articleApi.list({ page: page.value, pageSize: pageSize.value, ...search })
-    list.value = res.list || res.data || []
-    total.value = res.total || 0
+    list.value = res.data?.records || []
+    total.value = res.data?.total || 0
   } finally {
     loading.value = false
   }
 }
 
 const loadCategories = async () => {
-  categories.value = await categoryApi.list()
+  const res = await categoryApi.list()
+  categories.value = res.data || []
 }
 
 const handleDelete = async id => {

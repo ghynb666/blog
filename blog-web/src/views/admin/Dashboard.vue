@@ -18,16 +18,20 @@ import * as tagApi from '@/api/tag'
 const stats = ref({ articles: 0, categories: 0, tags: 0, views: 0 })
 
 onMounted(async () => {
-  const [articles, categories, tags] = await Promise.all([
-    articleApi.list({ page: 1, pageSize: 1 }),
-    categoryApi.list(),
-    tagApi.list()
-  ])
-  stats.value = {
-    articles: articles.total || 0,
-    categories: categories.length || 0,
-    tags: tags.length || 0,
-    views: 0
+  try {
+    const [articlesRes, categoriesRes, tagsRes] = await Promise.all([
+      articleApi.list({ page: 1, pageSize: 1 }),
+      categoryApi.list(),
+      tagApi.list()
+    ])
+    stats.value = {
+      articles: articlesRes.data?.total || 0,
+      categories: categoriesRes.data?.length || 0,
+      tags: tagsRes.data?.length || 0,
+      views: 0
+    }
+  } catch (e) {
+    console.error(e)
   }
 })
 </script>

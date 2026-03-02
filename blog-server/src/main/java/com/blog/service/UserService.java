@@ -8,4 +8,5 @@ import com.blog.vo.LoginVO;
 public interface UserService extends IService<User> {
 
     LoginVO login(LoginDTO dto);
+    User getByToken(String token);
 }
