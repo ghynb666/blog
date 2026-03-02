@@ -26,7 +26,7 @@ const routes = [
       { path: 'user', component: () => import('@/views/admin/User.vue') }
     ]
   },
-  { path: '/login', component: () => import('@/views/admin/Login.vue') }
+  { path: '/admin/login', component: () => import('@/views/admin/Login.vue') }
 ]
 
 const router = createRouter({
@@ -36,8 +36,8 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
-  if (to.path.startsWith('/admin') && to.path !== '/login' && !token) {
-    next('/login')
+  if (to.path.startsWith('/admin') && to.path !== '/admin/login' && !token) {
+    next('/admin/login')
   } else {
     next()
   }

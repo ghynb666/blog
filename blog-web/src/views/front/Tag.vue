@@ -1,7 +1,13 @@
 <template>
   <div class="tag-page">
-    <h2>标签：{{ tag?.name }}</h2>
-    <ArticleCard v-for="a in articles" :key="a.id" :article="a" />
+    <header class="page-header">
+      <span class="label">标签</span>
+      <h1 class="title"># {{ tag?.name }}</h1>
+      <p class="count">{{ total }} 篇文章</p>
+    </header>
+    <div class="articles">
+      <ArticleCard v-for="a in articles" :key="a.id" :article="a" />
+    </div>
     <Pagination :page="page" :page-size="pageSize" :total="total" @change="loadArticles" />
   </div>
 </template>
@@ -32,6 +38,27 @@ watch(() => route.params.id, () => { loadArticles(); loadTag() }, { immediate: t
 </script>
 
 <style scoped>
-.tag-page { background: #fff; border-radius: 8px; padding: 24px; }
-h2 { margin: 0 0 24px; font-size: 20px; }
+.tag-page { min-height: 400px; }
+.page-header { margin-bottom: 32px; }
+.label {
+  display: inline-block;
+  background: var(--accent-light);
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+.title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--fg);
+  margin: 0 0 8px;
+}
+.count { color: var(--muted); font-size: 14px; margin: 0; }
+.articles { display: flex; flex-direction: column; gap: 24px; }
 </style>
