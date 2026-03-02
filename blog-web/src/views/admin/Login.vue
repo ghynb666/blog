@@ -41,6 +41,8 @@ const handleLogin = async () => {
     await userStore.login(form)
     ElMessage.success('登录成功')
     router.push('/admin')
+  } catch (e) {
+    console.error('登录失败', e)
   } finally {
     loading.value = false
   }

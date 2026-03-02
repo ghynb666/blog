@@ -45,9 +45,13 @@ import { useUserStore } from '@/store/user'
 const router = useRouter()
 const userStore = useUserStore()
 
-onMounted(() => {
+onMounted(async () => {
   if (userStore.token && !userStore.userInfo) {
-    userStore.getInfo()
+    try {
+      await userStore.getInfo()
+    } catch (e) {
+      console.error('获取用户信息失败', e)
+    }
   }
 })
 
