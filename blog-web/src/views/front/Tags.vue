@@ -27,16 +27,18 @@ const pageSize = 10
 const total = ref(0)
 const allTags = ref([])
 const tagIds = computed(() => route.params.ids ? route.params.ids.split(',').map(Number) : [])
+const categoryId = computed(() => route.query.categoryId ? Number(route.query.categoryId) : null)
 const selectedTags = computed(() => allTags.value.filter(t => tagIds.value.includes(t.id)))
 const loadArticles = async p => {
   page.value = p || 1
   if (tagIds.value.length === 0) { articles.value = []; total.value = 0; return }
-  const res = await frontApi.getArticlesByTags(tagIds.value, { page: page.value, pageSize })
+  const res = await frontApi.getArticlesByTags(tagIds.value, { page: page.value, pageSize }, categoryId.value)
   articles.value = res.data?.records || []
   total.value = res.data?.total || 0
 }
 const loadTags = async () => { const res = await frontApi.getTags(); allTags.value = res.data || [] }
 watch(() => route.params.ids, () => { loadArticles() }, { immediate: true })
+watch(() => route.query.categoryId, () => loadArticles())
 loadTags()
 </script>
 

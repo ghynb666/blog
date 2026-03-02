@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { frontApi } from '@/api/front'
 import ArticleCard from '@/components/ArticleCard.vue'
@@ -24,9 +24,14 @@ const articles = ref([])
 const page = ref(1)
 const pageSize = 10
 const total = ref(0)
+const tagIds = computed(() => {
+  const ids = route.query.tagIds
+  return ids ? ids.split(',').map(Number) : null
+})
 const loadArticles = async p => {
   page.value = p || 1
-  const res = await frontApi.getArticlesByCategory(route.params.id, { page: page.value, pageSize })
+  const params = { page: page.value, pageSize }
+  const res = await frontApi.getArticlesByCategory(route.params.id, params, tagIds.value)
   articles.value = res.data?.records || []
   total.value = res.data?.total || 0
 }
@@ -35,6 +40,7 @@ const loadCategory = async () => {
   category.value = (res.data || []).find(c => c.id === Number(route.params.id))
 }
 watch(() => route.params.id, () => { loadArticles(); loadCategory() }, { immediate: true })
+watch(() => route.query.tagIds, () => loadArticles())
 </script>
 
 <style scoped>

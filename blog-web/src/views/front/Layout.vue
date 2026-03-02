@@ -35,7 +35,7 @@
               <span class="title-icon">#</span>分类
             </h3>
             <ul class="category-list">
-              <li v-for="c in categories" :key="c.id" @click="$router.push(`/category/${c.id}`)">
+              <li v-for="c in categories" :key="c.id" @click="onCategoryClick(c.id)">
                 <span class="cat-name">{{ c.name }}</span>
                 <span class="cat-count">{{ c.articleCount || 0 }}</span>
               </li>
@@ -59,15 +59,27 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { frontApi } from '@/api/front'
 import TagCloud from '@/components/TagCloud.vue'
 const router = useRouter()
+const route = useRoute()
 const categories = ref([])
 const tags = ref([])
 const selectedTagIds = ref([])
 const isDark = ref(false)
+const currentCategoryId = computed(() => {
+  const match = route.path.match(/^\/category\/(\d+)/)
+  return match ? Number(match[1]) : null
+})
+watch(() => route.query.tagIds, val => {
+  if (val) {
+    selectedTagIds.value = val.split(',').map(Number)
+  } else {
+    selectedTagIds.value = []
+  }
+}, { immediate: true })
 onMounted(async () => {
   const [cRes, tRes] = await Promise.all([frontApi.getCategories(), frontApi.getTags()])
   categories.value = cRes.data || []
@@ -76,9 +88,24 @@ onMounted(async () => {
 const onTagChange = ids => {
   selectedTagIds.value = ids
   if (ids.length > 0) {
-    router.push(`/tags/${ids.join(',')}`)
+    if (currentCategoryId.value) {
+      router.push(`/category/${currentCategoryId.value}?tagIds=${ids.join(',')}`)
+    } else {
+      router.push(`/tags/${ids.join(',')}`)
+    }
   } else {
-    router.push('/')
+    if (currentCategoryId.value) {
+      router.push(`/category/${currentCategoryId.value}`)
+    } else {
+      router.push('/')
+    }
+  }
+}
+const onCategoryClick = id => {
+  if (selectedTagIds.value.length > 0) {
+    router.push(`/category/${id}?tagIds=${selectedTagIds.value.join(',')}`)
+  } else {
+    router.push(`/category/${id}`)
   }
 }
 const toggleTheme = () => {
