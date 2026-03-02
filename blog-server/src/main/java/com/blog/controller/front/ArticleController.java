@@ -34,8 +34,10 @@ public class ArticleController {
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) String keyword,
-            @RequestParam(required = false) String orderBy) {
-        return Result.success(articleService.frontList(page, size, keyword, orderBy));
+            @RequestParam(required = false) String orderBy,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) List<Long> tagIds) {
+        return Result.success(articleService.frontList(page, size, keyword, orderBy, categoryId, tagIds));
     }
 
     @GetMapping("/articles/{id}")
@@ -62,23 +64,26 @@ public class ArticleController {
     public Result<Page<ArticleListVO>> listByCategory(
             @PathVariable Long categoryId,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(articleService.listByCategory(categoryId, page, size));
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) List<Long> tagIds) {
+        return Result.success(articleService.frontList(page, size, null, null, categoryId, tagIds));
     }
 
     @GetMapping("/articles/tag/{tagId}")
     public Result<Page<ArticleListVO>> listByTag(
             @PathVariable Long tagId,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(articleService.listByTag(tagId, page, size));
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) Long categoryId) {
+        return Result.success(articleService.frontList(page, size, null, null, categoryId, List.of(tagId)));
     }
 
     @GetMapping("/articles/tags")
     public Result<Page<ArticleListVO>> listByTags(
             @RequestParam List<Long> tagIds,
             @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        return Result.success(articleService.listByTags(tagIds, page, size));
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) Long categoryId) {
+        return Result.success(articleService.frontList(page, size, null, null, categoryId, tagIds));
     }
 }

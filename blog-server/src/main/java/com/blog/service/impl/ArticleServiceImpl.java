@@ -146,12 +146,40 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
-    public Page<ArticleListVO> frontList(Integer page, Integer size, String keyword, String orderBy) {
+    public Page<ArticleListVO> frontList(Integer page, Integer size, String keyword, String orderBy, Long categoryId, List<Long> tagIds) {
+        List<Long> articleIdsByTags = null;
+        if (!CollectionUtils.isEmpty(tagIds)) {
+            List<ArticleTag> articleTags = articleTagMapper.selectList(
+                new LambdaQueryWrapper<ArticleTag>().in(ArticleTag::getTagId, tagIds)
+            );
+            if (CollectionUtils.isEmpty(articleTags)) {
+                Page<ArticleListVO> emptyPage = new Page<>(page, size, 0);
+                emptyPage.setRecords(new ArrayList<>());
+                return emptyPage;
+            }
+            Map<Long, Long> articleTagCount = articleTags.stream()
+                .collect(Collectors.groupingBy(ArticleTag::getArticleId, Collectors.counting()));
+            articleIdsByTags = articleTagCount.entrySet().stream()
+                .filter(e -> e.getValue() == tagIds.size())
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(articleIdsByTags)) {
+                Page<ArticleListVO> emptyPage = new Page<>(page, size, 0);
+                emptyPage.setRecords(new ArrayList<>());
+                return emptyPage;
+            }
+        }
         Page<Article> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Article::getStatus, 1);
         if (StringUtils.hasText(keyword)) {
             wrapper.like(Article::getTitle, keyword);
+        }
+        if (categoryId != null) {
+            wrapper.eq(Article::getCategoryId, categoryId);
+        }
+        if (articleIdsByTags != null) {
+            wrapper.in(Article::getId, articleIdsByTags);
         }
         if ("viewCount".equals(orderBy)) {
             wrapper.orderByDesc(Article::getViewCount);
@@ -220,35 +248,6 @@ public class ArticleServiceImpl implements ArticleService {
         return result;
     }
 
-    @Override
-    public Page<ArticleListVO> listByCategory(Long categoryId, Integer page, Integer size) {
-        Page<Article> pageParam = new Page<>(page, size);
-        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getStatus, 1).eq(Article::getCategoryId, categoryId).orderByDesc(Article::getCreatedAt);
-        Page<Article> articlePage = articleMapper.selectPage(pageParam, wrapper);
-        Page<ArticleListVO> voPage = new Page<>(articlePage.getCurrent(), articlePage.getSize(), articlePage.getTotal());
-        voPage.setRecords(articlePage.getRecords().stream().map(this::toListVO).collect(Collectors.toList()));
-        return voPage;
-    }
-
-    @Override
-    public Page<ArticleListVO> listByTag(Long tagId, Integer page, Integer size) {
-        List<ArticleTag> articleTags = articleTagMapper.selectList(new LambdaQueryWrapper<ArticleTag>().eq(ArticleTag::getTagId, tagId));
-        if (CollectionUtils.isEmpty(articleTags)) {
-            Page<ArticleListVO> emptyPage = new Page<>(page, size, 0);
-            emptyPage.setRecords(new ArrayList<>());
-            return emptyPage;
-        }
-        List<Long> articleIds = articleTags.stream().map(ArticleTag::getArticleId).collect(Collectors.toList());
-        Page<Article> pageParam = new Page<>(page, size);
-        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getStatus, 1).in(Article::getId, articleIds).orderByDesc(Article::getCreatedAt);
-        Page<Article> articlePage = articleMapper.selectPage(pageParam, wrapper);
-        Page<ArticleListVO> voPage = new Page<>(articlePage.getCurrent(), articlePage.getSize(), articlePage.getTotal());
-        voPage.setRecords(articlePage.getRecords().stream().map(this::toListVO).collect(Collectors.toList()));
-        return voPage;
-    }
-
     private ArchiveVO.ArticleSimpleVO toSimpleVO(Article article) {
         ArchiveVO.ArticleSimpleVO vo = new ArchiveVO.ArticleSimpleVO();
         vo.setId(article.getId());
@@ -273,39 +272,6 @@ public class ArticleServiceImpl implements ArticleService {
             ip = ip.split(",")[0].trim();
         }
         return ip;
-    }
-
-    @Override
-    public Page<ArticleListVO> listByTags(List<Long> tagIds, Integer page, Integer size) {
-        if (CollectionUtils.isEmpty(tagIds)) {
-            return new Page<>(page, size, 0);
-        }
-        List<ArticleTag> articleTags = articleTagMapper.selectList(
-            new LambdaQueryWrapper<ArticleTag>().in(ArticleTag::getTagId, tagIds)
-        );
-        if (CollectionUtils.isEmpty(articleTags)) {
-            Page<ArticleListVO> emptyPage = new Page<>(page, size, 0);
-            emptyPage.setRecords(new ArrayList<>());
-            return emptyPage;
-        }
-        Map<Long, Long> articleTagCount = articleTags.stream()
-            .collect(Collectors.groupingBy(ArticleTag::getArticleId, Collectors.counting()));
-        List<Long> articleIds = articleTagCount.entrySet().stream()
-            .filter(e -> e.getValue() == tagIds.size())
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(articleIds)) {
-            Page<ArticleListVO> emptyPage = new Page<>(page, size, 0);
-            emptyPage.setRecords(new ArrayList<>());
-            return emptyPage;
-        }
-        Page<Article> pageParam = new Page<>(page, size);
-        LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getStatus, 1).in(Article::getId, articleIds).orderByDesc(Article::getCreatedAt);
-        Page<Article> articlePage = articleMapper.selectPage(pageParam, wrapper);
-        Page<ArticleListVO> voPage = new Page<>(articlePage.getCurrent(), articlePage.getSize(), articlePage.getTotal());
-        voPage.setRecords(articlePage.getRecords().stream().map(this::toListVO).collect(Collectors.toList()));
-        return voPage;
     }
 
     @Override

@@ -22,17 +22,11 @@ public interface ArticleService {
 
     ArticleVO detail(Long id);
 
-    Page<ArticleListVO> frontList(Integer page, Integer size, String keyword, String orderBy);
+    Page<ArticleListVO> frontList(Integer page, Integer size, String keyword, String orderBy, Long categoryId, List<Long> tagIds);
 
     ArticleDetailVO frontDetail(Long id, HttpServletRequest request);
 
     List<ArchiveVO> archives();
-
-    Page<ArticleListVO> listByCategory(Long categoryId, Integer page, Integer size);
-
-    Page<ArticleListVO> listByTag(Long tagId, Integer page, Integer size);
-
-    Page<ArticleListVO> listByTags(List<Long> tagIds, Integer page, Integer size);
 
     void incrementViewCount(Long id);
 }
