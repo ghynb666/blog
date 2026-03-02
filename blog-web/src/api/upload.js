@@ -7,3 +7,8 @@ export const upload = file => {
     headers: { 'Content-Type': 'multipart/form-data' }
   })
 }
+
+export const image = async file => {
+  const res = await upload(file)
+  return res
+}
