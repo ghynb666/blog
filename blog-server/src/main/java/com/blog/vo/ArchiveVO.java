@@ -23,6 +23,6 @@ public class ArchiveVO {
 
         private String summary;
 
-        private LocalDateTime createTime;
+        private LocalDateTime createdAt;
     }
 }

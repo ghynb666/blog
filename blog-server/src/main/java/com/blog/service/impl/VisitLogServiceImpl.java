@@ -18,7 +18,7 @@ public class VisitLogServiceImpl extends ServiceImpl<VisitLogMapper, VisitLog> i
         log.setArticleId(articleId);
         log.setIp(ip);
         log.setUserAgent(userAgent);
-        log.setCreateTime(LocalDateTime.now());
+        log.setCreatedAt(LocalDateTime.now());
         save(log);
     }
 
@@ -28,7 +28,7 @@ public class VisitLogServiceImpl extends ServiceImpl<VisitLogMapper, VisitLog> i
         long count = count(new LambdaQueryWrapper<VisitLog>()
                 .eq(VisitLog::getArticleId, articleId)
                 .eq(VisitLog::getIp, ip)
-                .ge(VisitLog::getCreateTime, yesterday));
+                .ge(VisitLog::getCreatedAt, yesterday));
         return count == 0;
     }
 }

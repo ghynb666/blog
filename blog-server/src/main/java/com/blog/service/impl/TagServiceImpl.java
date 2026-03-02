@@ -43,7 +43,7 @@ public class TagServiceImpl implements TagService {
 
     @Override
     public List<TagVO> list() {
-        List<Tag> tags = tagMapper.selectList(new LambdaQueryWrapper<Tag>().orderByDesc(Tag::getCreateTime));
+        List<Tag> tags = tagMapper.selectList(new LambdaQueryWrapper<Tag>().orderByDesc(Tag::getCreatedAt));
         return tags.stream().map(this::toVO).collect(Collectors.toList());
     }
 

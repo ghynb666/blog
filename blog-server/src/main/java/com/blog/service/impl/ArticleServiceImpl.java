@@ -90,7 +90,7 @@ public class ArticleServiceImpl implements ArticleService {
         if (categoryId != null) {
             wrapper.eq(Article::getCategoryId, categoryId);
         }
-        wrapper.orderByDesc(Article::getCreateTime);
+        wrapper.orderByDesc(Article::getCreatedAt);
         Page<Article> articlePage = articleMapper.selectPage(pageParam, wrapper);
         Page<ArticleListVO> voPage = new Page<>(articlePage.getCurrent(), articlePage.getSize(), articlePage.getTotal());
         voPage.setRecords(articlePage.getRecords().stream().map(this::toListVO).collect(Collectors.toList()));
@@ -156,7 +156,7 @@ public class ArticleServiceImpl implements ArticleService {
         if ("viewCount".equals(orderBy)) {
             wrapper.orderByDesc(Article::getViewCount);
         } else {
-            wrapper.orderByDesc(Article::getCreateTime);
+            wrapper.orderByDesc(Article::getCreatedAt);
         }
         Page<Article> articlePage = articleMapper.selectPage(pageParam, wrapper);
         Page<ArticleListVO> voPage = new Page<>(articlePage.getCurrent(), articlePage.getSize(), articlePage.getTotal());
@@ -195,12 +195,12 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     public List<ArchiveVO> archives() {
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getStatus, 1).orderByDesc(Article::getCreateTime);
+        wrapper.eq(Article::getStatus, 1).orderByDesc(Article::getCreatedAt);
         List<Article> articles = articleMapper.selectList(wrapper);
         Map<Integer, Map<Integer, List<Article>>> grouped = articles.stream()
                 .collect(Collectors.groupingBy(
-                        a -> a.getCreateTime().getYear(),
-                        Collectors.groupingBy(a -> a.getCreateTime().getMonthValue())
+                        a -> a.getCreatedAt().getYear(),
+                        Collectors.groupingBy(a -> a.getCreatedAt().getMonthValue())
                 ));
         List<ArchiveVO> result = new ArrayList<>();
         grouped.forEach((year, monthMap) -> {
@@ -224,7 +224,7 @@ public class ArticleServiceImpl implements ArticleService {
     public Page<ArticleListVO> listByCategory(Long categoryId, Integer page, Integer size) {
         Page<Article> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getStatus, 1).eq(Article::getCategoryId, categoryId).orderByDesc(Article::getCreateTime);
+        wrapper.eq(Article::getStatus, 1).eq(Article::getCategoryId, categoryId).orderByDesc(Article::getCreatedAt);
         Page<Article> articlePage = articleMapper.selectPage(pageParam, wrapper);
         Page<ArticleListVO> voPage = new Page<>(articlePage.getCurrent(), articlePage.getSize(), articlePage.getTotal());
         voPage.setRecords(articlePage.getRecords().stream().map(this::toListVO).collect(Collectors.toList()));
@@ -242,7 +242,7 @@ public class ArticleServiceImpl implements ArticleService {
         List<Long> articleIds = articleTags.stream().map(ArticleTag::getArticleId).collect(Collectors.toList());
         Page<Article> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getStatus, 1).in(Article::getId, articleIds).orderByDesc(Article::getCreateTime);
+        wrapper.eq(Article::getStatus, 1).in(Article::getId, articleIds).orderByDesc(Article::getCreatedAt);
         Page<Article> articlePage = articleMapper.selectPage(pageParam, wrapper);
         Page<ArticleListVO> voPage = new Page<>(articlePage.getCurrent(), articlePage.getSize(), articlePage.getTotal());
         voPage.setRecords(articlePage.getRecords().stream().map(this::toListVO).collect(Collectors.toList()));
@@ -254,7 +254,7 @@ public class ArticleServiceImpl implements ArticleService {
         vo.setId(article.getId());
         vo.setTitle(article.getTitle());
         vo.setSummary(article.getSummary());
-        vo.setCreateTime(article.getCreateTime());
+        vo.setCreatedAt(article.getCreatedAt());
         return vo;
     }
 
@@ -301,7 +301,7 @@ public class ArticleServiceImpl implements ArticleService {
         }
         Page<Article> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Article::getStatus, 1).in(Article::getId, articleIds).orderByDesc(Article::getCreateTime);
+        wrapper.eq(Article::getStatus, 1).in(Article::getId, articleIds).orderByDesc(Article::getCreatedAt);
         Page<Article> articlePage = articleMapper.selectPage(pageParam, wrapper);
         Page<ArticleListVO> voPage = new Page<>(articlePage.getCurrent(), articlePage.getSize(), articlePage.getTotal());
         voPage.setRecords(articlePage.getRecords().stream().map(this::toListVO).collect(Collectors.toList()));
