@@ -126,8 +126,12 @@ const loadTags = async () => {
 const handleUploadImage = async (file, callback) => {
   try {
     const res = await uploadApi.image(file)
-    const url = res.data?.url || res.url
+    let url = res.data?.url || res.url
     if (url) {
+      const token = localStorage.getItem('token')
+      if (token) {
+        url += (url.includes('?') ? '&' : '?') + 'token=' + encodeURIComponent(token)
+      }
       callback(url)
     } else {
       ElMessage.error('上传失败：未获取到图片地址')
