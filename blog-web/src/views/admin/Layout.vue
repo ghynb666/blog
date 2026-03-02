@@ -1,5 +1,5 @@
 <template>
-  <div class="admin-layout">
+  <div class="admin-layout" :class="{ dark: themeStore.isDark }">
     <aside class="sidebar" :class="{ collapsed: sidebarCollapsed }">
       <div class="sidebar-header">
         <div class="logo">
@@ -61,6 +61,22 @@
         </div>
         <div class="header-right">
           <div class="header-actions">
+            <button class="action-btn theme-toggle" @click="themeStore.toggle()" :title="themeStore.isDark ? '切换到亮色模式' : '切换到暗色模式'">
+              <svg v-if="themeStore.isDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"/>
+                <line x1="12" y1="1" x2="12" y2="3"/>
+                <line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/>
+                <line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </button>
             <a href="/" target="_blank" class="action-btn" title="访问前台">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -111,10 +127,12 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/store/user'
+import { useThemeStore } from '@/store/theme'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 const sidebarCollapsed = ref(false)
 
 const pageTitle = computed(() => {
@@ -150,10 +168,35 @@ const handleCommand = cmd => {
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap');
 
 .admin-layout {
+  --bg-primary: #faf8f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f5f0e8;
+  --text-primary: #2d2a26;
+  --text-secondary: #5c5246;
+  --text-muted: #8b7355;
+  --border-color: #e8e0d5;
+  --accent: #c45d3e;
+  --accent-light: rgba(196, 93, 62, 0.1);
+  --shadow: rgba(45, 42, 38, 0.04);
+  
   min-height: 100vh;
   display: flex;
-  background: #faf8f5;
+  background: var(--bg-primary);
   font-family: 'Source Sans 3', sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+.admin-layout.dark {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #252525;
+  --text-primary: #f5f5f5;
+  --text-secondary: #b8b8b8;
+  --text-muted: #888888;
+  --border-color: #333333;
+  --accent: #e07a5f;
+  --accent-light: rgba(224, 122, 95, 0.15);
+  --shadow: rgba(0, 0, 0, 0.3);
 }
 
 .sidebar {
@@ -167,6 +210,11 @@ const handleCommand = cmd => {
   top: 0;
   bottom: 0;
   z-index: 100;
+}
+
+.admin-layout.dark .sidebar {
+  background: linear-gradient(180deg, #1a1a1a 0%, #0f0f0f 100%);
+  border-right: 1px solid #222;
 }
 
 .sidebar.collapsed {
@@ -190,7 +238,7 @@ const handleCommand = cmd => {
 .logo-icon {
   width: 36px;
   height: 36px;
-  color: #c45d3e;
+  color: var(--accent);
   flex-shrink: 0;
 }
 
@@ -256,8 +304,8 @@ const handleCommand = cmd => {
 }
 
 .nav-item.active {
-  background: rgba(196, 93, 62, 0.15);
-  color: #c45d3e;
+  background: var(--accent-light);
+  color: var(--accent);
 }
 
 .nav-item.active::before {
@@ -268,7 +316,7 @@ const handleCommand = cmd => {
   transform: translateY(-50%);
   width: 3px;
   height: 24px;
-  background: #c45d3e;
+  background: var(--accent);
   border-radius: 0 2px 2px 0;
 }
 
@@ -310,9 +358,9 @@ const handleCommand = cmd => {
 
 .top-header {
   height: 64px;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid #e8e0d5;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -320,6 +368,12 @@ const handleCommand = cmd => {
   position: sticky;
   top: 0;
   z-index: 50;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.admin-layout.dark .top-header {
+  backdrop-filter: blur(20px);
+  background: rgba(26, 26, 26, 0.9);
 }
 
 .header-left {
@@ -331,7 +385,8 @@ const handleCommand = cmd => {
   font-family: 'Playfair Display', serif;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #2d2a26;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .header-right {
@@ -354,11 +409,11 @@ const handleCommand = cmd => {
   justify-content: center;
   border-radius: 10px;
   background: transparent;
-  border: 1px solid #e8e0d5;
+  border: 1px solid var(--border-color);
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
-  color: #5c5246;
+  color: var(--text-secondary);
 }
 
 .action-btn svg {
@@ -367,9 +422,27 @@ const handleCommand = cmd => {
 }
 
 .action-btn:hover {
-  background: #f5f0e8;
-  border-color: #d4a574;
-  color: #c45d3e;
+  background: var(--bg-tertiary);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.theme-toggle {
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, var(--accent-light) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.theme-toggle:hover::after {
+  opacity: 1;
 }
 
 .user-dropdown {
@@ -386,14 +459,14 @@ const handleCommand = cmd => {
 }
 
 .user-info:hover {
-  background: #f5f0e8;
+  background: var(--bg-tertiary);
 }
 
 .user-avatar {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #c45d3e 0%, #d4a574 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #d4a574 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -405,13 +478,14 @@ const handleCommand = cmd => {
 .user-name {
   font-size: 0.95rem;
   font-weight: 500;
-  color: #2d2a26;
+  color: var(--text-primary);
+  transition: color 0.3s ease;
 }
 
 .dropdown-arrow {
   width: 16px;
   height: 16px;
-  color: #8b7355;
+  color: var(--text-muted);
 }
 
 .dropdown-icon {
@@ -439,6 +513,20 @@ const handleCommand = cmd => {
   display: flex;
   align-items: center;
   font-family: 'Source Sans 3', sans-serif;
+}
+
+.admin-layout.dark :deep(.el-dropdown-menu) {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
+}
+
+.admin-layout.dark :deep(.el-dropdown-menu__item) {
+  color: var(--text-primary);
+}
+
+.admin-layout.dark :deep(.el-dropdown-menu__item:hover) {
+  background: var(--bg-tertiary);
+  color: var(--accent);
 }
 
 @media (max-width: 768px) {

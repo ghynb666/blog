@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div class="login-container" :class="{ dark: themeStore.isDark }">
     <div class="login-bg">
       <div class="grain-overlay"></div>
       <div class="floating-shapes">
@@ -55,7 +55,24 @@
           </el-form-item>
         </el-form>
         <div class="login-footer">
-          <p>© 2024 Blog Admin</p>
+          <button class="theme-toggle" @click="themeStore.toggle()">
+            <svg v-if="themeStore.isDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"/>
+              <line x1="12" y1="1" x2="12" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="23"/>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+              <line x1="1" y1="12" x2="3" y2="12"/>
+              <line x1="21" y1="12" x2="23" y2="12"/>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+            <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+            </svg>
+            <span>{{ themeStore.isDark ? '切换亮色' : '切换暗色' }}</span>
+          </button>
+          <p class="copyright">© 2024 Blog Admin</p>
         </div>
       </div>
     </div>
@@ -67,9 +84,11 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/user'
+import { useThemeStore } from '@/store/theme'
 
 const router = useRouter()
 const userStore = useUserStore()
+const themeStore = useThemeStore()
 const formRef = ref()
 const loading = ref(false)
 
@@ -98,17 +117,41 @@ const handleLogin = async () => {
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap');
 
 .login-container {
+  --bg-primary: #faf8f5;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f5f0e8;
+  --text-primary: #2d2a26;
+  --text-secondary: #5c5246;
+  --text-muted: #8b7355;
+  --border-color: #e8e0d5;
+  --accent: #c45d3e;
+  --accent-light: rgba(196, 93, 62, 0.1);
+  
   min-height: 100vh;
   display: flex;
   position: relative;
   overflow: hidden;
-  background: #faf8f5;
+  background: var(--bg-primary);
+  transition: background 0.3s ease;
+}
+
+.login-container.dark {
+  --bg-primary: #0f0f0f;
+  --bg-secondary: #1a1a1a;
+  --bg-tertiary: #252525;
+  --text-primary: #f5f5f5;
+  --text-secondary: #b8b8b8;
+  --text-muted: #888888;
+  --border-color: #333333;
+  --accent: #e07a5f;
+  --accent-light: rgba(224, 122, 95, 0.15);
 }
 
 .login-bg {
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, #f5f0e8 0%, #e8e0d5 50%, #f0ebe3 100%);
+  background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--border-color) 50%, var(--bg-tertiary) 100%);
+  transition: background 0.3s ease;
 }
 
 .grain-overlay {
@@ -136,7 +179,7 @@ const handleLogin = async () => {
 .shape-1 {
   width: 400px;
   height: 400px;
-  background: linear-gradient(135deg, #c45d3e 0%, #d4a574 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #d4a574 100%);
   top: -100px;
   right: -100px;
   animation-delay: 0s;
@@ -145,7 +188,7 @@ const handleLogin = async () => {
 .shape-2 {
   width: 300px;
   height: 300px;
-  background: linear-gradient(135deg, #8b7355 0%, #c45d3e 100%);
+  background: linear-gradient(135deg, var(--text-muted) 0%, var(--accent) 100%);
   bottom: -50px;
   left: -50px;
   animation-delay: -7s;
@@ -154,7 +197,7 @@ const handleLogin = async () => {
 .shape-3 {
   width: 200px;
   height: 200px;
-  background: linear-gradient(135deg, #d4a574 0%, #8b7355 100%);
+  background: linear-gradient(135deg, #d4a574 0%, var(--text-muted) 100%);
   top: 50%;
   left: 30%;
   animation-delay: -14s;
@@ -179,16 +222,14 @@ const handleLogin = async () => {
 .login-card {
   width: 100%;
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--bg-secondary);
   backdrop-filter: blur(20px);
   border-radius: 24px;
   padding: 3rem 2.5rem;
-  box-shadow: 
-    0 4px 6px -1px rgba(139, 115, 85, 0.05),
-    0 10px 15px -3px rgba(139, 115, 85, 0.08),
-    0 20px 25px -5px rgba(139, 115, 85, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--border-color);
   animation: cardEntrance 0.6s ease-out;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 @keyframes cardEntrance {
@@ -211,8 +252,9 @@ const handleLogin = async () => {
   width: 56px;
   height: 56px;
   margin: 0 auto 1.25rem;
-  color: #c45d3e;
+  color: var(--accent);
   animation: logoFloat 3s ease-in-out infinite;
+  transition: color 0.3s ease;
 }
 
 @keyframes logoFloat {
@@ -224,17 +266,19 @@ const handleLogin = async () => {
   font-family: 'Playfair Display', serif;
   font-size: 2rem;
   font-weight: 600;
-  color: #2d2a26;
+  color: var(--text-primary);
   margin: 0 0 0.5rem;
   letter-spacing: -0.02em;
+  transition: color 0.3s ease;
 }
 
 .login-subtitle {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.95rem;
-  color: #8b7355;
+  color: var(--text-muted);
   margin: 0;
   font-weight: 400;
+  transition: color 0.3s ease;
 }
 
 .login-form {
@@ -250,14 +294,15 @@ const handleLogin = async () => {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #5c5246;
+  color: var(--text-secondary);
   margin-bottom: 0.5rem;
   letter-spacing: 0.02em;
+  transition: color 0.3s ease;
 }
 
 .login-form :deep(.el-input__wrapper) {
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #e8e0d5;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   border-radius: 12px;
   box-shadow: none;
   padding: 0.25rem 1rem;
@@ -265,29 +310,30 @@ const handleLogin = async () => {
 }
 
 .login-form :deep(.el-input__wrapper:hover) {
-  border-color: #d4a574;
+  border-color: var(--accent);
 }
 
 .login-form :deep(.el-input__wrapper.is-focus) {
-  border-color: #c45d3e;
-  box-shadow: 0 0 0 3px rgba(196, 93, 62, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .login-form :deep(.el-input__inner) {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.95rem;
-  color: #2d2a26;
+  color: var(--text-primary);
   height: 44px;
+  background: transparent;
 }
 
 .login-form :deep(.el-input__inner::placeholder) {
-  color: #b8a99a;
+  color: var(--text-muted);
 }
 
 .input-icon {
   width: 18px;
   height: 18px;
-  color: #8b7355;
+  color: var(--text-muted);
 }
 
 .login-btn {
@@ -297,7 +343,7 @@ const handleLogin = async () => {
   font-size: 1rem;
   font-weight: 600;
   letter-spacing: 0.05em;
-  background: linear-gradient(135deg, #c45d3e 0%, #a84a2e 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #a84a2e 100%);
   border: none;
   border-radius: 12px;
   transition: all 0.3s ease;
@@ -305,7 +351,6 @@ const handleLogin = async () => {
 }
 
 .login-btn:hover {
-  background: linear-gradient(135deg, #d46a4a 0%, #c45d3e 100%);
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(196, 93, 62, 0.3);
 }
@@ -317,14 +362,45 @@ const handleLogin = async () => {
 .login-footer {
   text-align: center;
   padding-top: 1.5rem;
-  border-top: 1px solid #e8e0d5;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
 }
 
-.login-footer p {
+.theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.8rem;
-  color: #a89b8c;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+}
+
+.theme-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+.theme-toggle:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.copyright {
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-muted);
   margin: 0;
+  transition: color 0.3s ease;
 }
 
 @media (max-width: 480px) {

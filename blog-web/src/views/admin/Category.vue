@@ -161,7 +161,7 @@ onMounted(loadData)
   font-family: 'Playfair Display', serif;
   font-size: 2rem;
   font-weight: 600;
-  color: #2d2a26;
+  color: var(--text-primary);
   margin: 0 0 0.5rem;
   letter-spacing: -0.02em;
 }
@@ -169,7 +169,7 @@ onMounted(loadData)
 .page-subtitle {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.95rem;
-  color: #8b7355;
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -178,7 +178,7 @@ onMounted(loadData)
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, #c45d3e 0%, #a84a2e 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #a84a2e 100%);
   color: #fff;
   border-radius: 10px;
   border: none;
@@ -209,29 +209,29 @@ onMounted(loadData)
   align-items: center;
   justify-content: center;
   padding: 4rem 2rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
   border-radius: 16px;
-  border: 1px solid #e8e0d5;
+  border: 1px solid var(--border-color);
 }
 
 .empty-state svg {
   width: 64px;
   height: 64px;
-  color: #b8a99a;
+  color: var(--text-muted);
   margin-bottom: 1rem;
 }
 
 .empty-state p {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 1rem;
-  color: #8b7355;
+  color: var(--text-muted);
   margin: 0 0 1.5rem;
 }
 
 .empty-btn {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #c45d3e 0%, #a84a2e 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #a84a2e 100%);
   color: #fff;
   border-radius: 10px;
   border: none;
@@ -258,16 +258,16 @@ onMounted(loadData)
   align-items: flex-start;
   gap: 1rem;
   padding: 1.25rem;
-  background: rgba(255, 255, 255, 0.9);
+  background: var(--bg-secondary);
   backdrop-filter: blur(10px);
   border-radius: 14px;
-  border: 1px solid #e8e0d5;
+  border: 1px solid var(--border-color);
   transition: all 0.3s ease;
 }
 
 .category-card:hover {
-  border-color: #d4a574;
-  box-shadow: 0 8px 16px rgba(139, 115, 85, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 8px 16px var(--shadow);
 }
 
 .category-icon {
@@ -296,14 +296,14 @@ onMounted(loadData)
   font-family: 'Source Sans 3', sans-serif;
   font-size: 1rem;
   font-weight: 600;
-  color: #2d2a26;
+  color: var(--text-primary);
   margin: 0 0 0.25rem;
 }
 
 .category-desc {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.8rem;
-  color: #8b7355;
+  color: var(--text-muted);
   margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -323,7 +323,7 @@ onMounted(loadData)
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  border: 1px solid #e8e0d5;
+  border: 1px solid var(--border-color);
   background: transparent;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -335,17 +335,17 @@ onMounted(loadData)
 }
 
 .action-btn.edit {
-  color: #5c5246;
+  color: var(--text-secondary);
 }
 
 .action-btn.edit:hover {
-  background: rgba(196, 93, 62, 0.1);
-  border-color: #c45d3e;
-  color: #c45d3e;
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .action-btn.delete {
-  color: #5c5246;
+  color: var(--text-secondary);
 }
 
 .action-btn.delete:hover {
@@ -374,28 +374,28 @@ onMounted(loadData)
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #2d2a26;
+  color: var(--text-primary);
 }
 
 .form-input, .form-textarea {
   padding: 0.875rem 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid #e8e0d5;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.95rem;
-  color: #2d2a26;
+  color: var(--text-primary);
   transition: all 0.3s ease;
 }
 
 .form-input:focus, .form-textarea:focus {
   outline: none;
-  border-color: #c45d3e;
-  box-shadow: 0 0 0 3px rgba(196, 93, 62, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .form-input::placeholder, .form-textarea::placeholder {
-  color: #b8a99a;
+  color: var(--text-muted);
 }
 
 .form-textarea {
@@ -421,16 +421,16 @@ onMounted(loadData)
 }
 
 .dialog-btn.cancel {
-  background: #f5f0e8;
-  color: #5c5246;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
 }
 
 .dialog-btn.cancel:hover {
-  background: #e8e0d5;
+  background: var(--border-color);
 }
 
 .dialog-btn.confirm {
-  background: linear-gradient(135deg, #c45d3e 0%, #a84a2e 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, #a84a2e 100%);
   color: #fff;
 }
 
@@ -454,7 +454,7 @@ onMounted(loadData)
 .delete-message {
   font-family: 'Source Sans 3', sans-serif;
   font-size: 0.95rem;
-  color: #5c5246;
+  color: var(--text-secondary);
   margin: 0;
 }
 
