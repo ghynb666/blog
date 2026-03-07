@@ -1,8 +1,8 @@
-import axios from 'axios'
+﻿import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
 const request = axios.create({
-  baseURL: '/api',
+  baseURL: '/api/v1',
   timeout: 10000
 })
 
@@ -18,11 +18,22 @@ request.interceptors.request.use(
 )
 
 request.interceptors.response.use(
-  response => response.data,
+  response => {
+    const payload = response.data
+    if (payload && payload.code !== 200) {
+      ElMessage.error(payload.message || 'Request failed')
+      if (payload.code === 401) {
+        localStorage.removeItem('token')
+        window.location.href = '/admin/login'
+      }
+      return Promise.reject(new Error(payload.message || 'Request failed'))
+    }
+    return payload
+  },
   error => {
-    const msg = error.response?.data?.message || '请求失败'
+    const msg = error.response?.data?.message || 'Request failed'
     ElMessage.error(msg)
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 || error.response?.data?.code === 401) {
       localStorage.removeItem('token')
       window.location.href = '/admin/login'
     }

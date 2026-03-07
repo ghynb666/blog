@@ -1,4 +1,4 @@
-package com.blog.controller.admin;
+﻿package com.blog.controller.admin;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.common.Result;
@@ -12,7 +12,7 @@ import javax.annotation.Resource;
 import javax.validation.Valid;
 
 @RestController("adminArticleController")
-@RequestMapping("/api/admin/articles")
+@RequestMapping({"/api/admin/articles", "/api/v1/admin/articles"})
 public class ArticleController {
 
     @Resource

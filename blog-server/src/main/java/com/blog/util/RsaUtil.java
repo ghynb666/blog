@@ -1,13 +1,15 @@
-package com.blog.util;
+﻿package com.blog.util;
 
+import com.blog.common.AppException;
+import com.blog.common.ErrorCode;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.crypto.Cipher;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.Base64;
-import javax.crypto.Cipher;
 
 @Component
 public class RsaUtil {
@@ -21,7 +23,7 @@ public class RsaUtil {
             generator.initialize(2048);
             keyPair = generator.generateKeyPair();
         } catch (Exception e) {
-            throw new RuntimeException("RSA密钥对生成失败", e);
+            throw new AppException(ErrorCode.INTERNAL_ERROR, "RSA keypair initialization failed");
         }
     }
 
@@ -36,7 +38,7 @@ public class RsaUtil {
             byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptedBase64));
             return new String(decrypted, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new RuntimeException("RSA解密失败", e);
+            throw new AppException(ErrorCode.RSA_DECRYPT_FAILED);
         }
     }
 }

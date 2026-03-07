@@ -1,34 +1,24 @@
-package com.blog.controller.front;
+﻿package com.blog.controller.front;
 
 import com.blog.common.Result;
-import com.blog.service.ArticleService;
-import com.blog.service.VisitLogService;
+import com.blog.event.publisher.ArticleDomainEventPublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
 @RestController
-@RequestMapping("/api/visit")
+@RequestMapping({"/api/visit", "/api/v1/visit"})
 public class VisitController {
 
     @Autowired
-    private VisitLogService visitLogService;
-
-    @Autowired
-    private ArticleService articleService;
+    private ArticleDomainEventPublisher articleDomainEventPublisher;
 
     @PostMapping("/{articleId}")
     public Result<Void> recordVisit(@PathVariable Long articleId, HttpServletRequest request) {
         String ip = getClientIp(request);
         String userAgent = request.getHeader("User-Agent");
-
-        visitLogService.recordVisit(articleId, ip, userAgent);
-
-        if (visitLogService.canCount(articleId, ip)) {
-            articleService.incrementViewCount(articleId);
-        }
-
+        articleDomainEventPublisher.publishArticleViewed(articleId, ip, userAgent);
         return Result.success();
     }
 

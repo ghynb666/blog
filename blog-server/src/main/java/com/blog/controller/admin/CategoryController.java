@@ -1,4 +1,4 @@
-package com.blog.controller.admin;
+﻿package com.blog.controller.admin;
 
 import com.blog.common.Result;
 import com.blog.dto.CategoryDTO;
@@ -11,7 +11,7 @@ import javax.validation.Valid;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/categories")
+@RequestMapping({"/api/admin/categories", "/api/v1/admin/categories"})
 public class CategoryController {
 
     @Resource

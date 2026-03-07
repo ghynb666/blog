@@ -1,4 +1,4 @@
-import request from '@/utils/request'
+﻿import request from '@/utils/request'
 
 export const frontApi = {
   getArticles: params => request.get('/articles', { params }),
@@ -20,5 +20,5 @@ export const frontApi = {
   },
   getCategories: () => request.get('/categories'),
   getTags: () => request.get('/tags'),
-  getArchives: () => request.get('/articles/archives')
+  getArchives: () => request.get('/archives')
 }

@@ -1,6 +1,8 @@
-package com.blog.service.impl;
+﻿package com.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.blog.common.AppException;
+import com.blog.common.ErrorCode;
 import com.blog.dto.TagDTO;
 import com.blog.entity.Tag;
 import com.blog.mapper.TagMapper;
@@ -30,7 +32,7 @@ public class TagServiceImpl implements TagService {
     public void update(Long id, TagDTO dto) {
         Tag tag = tagMapper.selectById(id);
         if (tag == null) {
-            throw new RuntimeException("标签不存在");
+            throw new AppException(ErrorCode.TAG_NOT_FOUND);
         }
         BeanUtils.copyProperties(dto, tag);
         tagMapper.updateById(tag);
@@ -51,7 +53,7 @@ public class TagServiceImpl implements TagService {
     public TagVO detail(Long id) {
         Tag tag = tagMapper.selectById(id);
         if (tag == null) {
-            throw new RuntimeException("标签不存在");
+            throw new AppException(ErrorCode.TAG_NOT_FOUND);
         }
         return toVO(tag);
     }

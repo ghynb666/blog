@@ -1,8 +1,10 @@
-package com.blog.service.impl;
+﻿package com.blog.service.impl;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.blog.common.AppException;
+import com.blog.common.ErrorCode;
 import com.blog.dto.LoginDTO;
 import com.blog.entity.User;
 import com.blog.mapper.UserMapper;
@@ -20,7 +22,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = getOne(new LambdaQueryWrapper<User>()
                 .eq(User::getUsername, dto.getUsername()));
         if (user == null) {
-            throw new RuntimeException("用户不存在");
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
 
         String storedPassword = user.getPassword();
@@ -37,7 +39,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         if (!valid) {
-            throw new RuntimeException("密码错误");
+            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
         }
 
         StpUtil.login(user.getId());

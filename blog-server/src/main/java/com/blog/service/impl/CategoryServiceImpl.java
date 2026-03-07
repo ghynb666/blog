@@ -1,6 +1,8 @@
-package com.blog.service.impl;
+﻿package com.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.blog.common.AppException;
+import com.blog.common.ErrorCode;
 import com.blog.dto.CategoryDTO;
 import com.blog.entity.Category;
 import com.blog.mapper.CategoryMapper;
@@ -33,7 +35,7 @@ public class CategoryServiceImpl implements CategoryService {
     public void update(Long id, CategoryDTO dto) {
         Category category = categoryMapper.selectById(id);
         if (category == null) {
-            throw new RuntimeException("分类不存在");
+            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         BeanUtils.copyProperties(dto, category);
         categoryMapper.updateById(category);
@@ -54,7 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryVO detail(Long id) {
         Category category = categoryMapper.selectById(id);
         if (category == null) {
-            throw new RuntimeException("分类不存在");
+            throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
         }
         return toVO(category);
     }

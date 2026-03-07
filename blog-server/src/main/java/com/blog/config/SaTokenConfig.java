@@ -1,4 +1,4 @@
-package com.blog.config;
+﻿package com.blog.config;
 
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpUtil;
@@ -12,11 +12,14 @@ public class SaTokenConfig implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new SaInterceptor(handle -> StpUtil.checkLogin()))
-                .addPathPatterns("/api/admin/**")
+                .addPathPatterns("/api/admin/**", "/api/v1/admin/**")
                 .excludePathPatterns(
                         "/api/admin/login",
                         "/api/admin/public-key",
-                        "/api/admin/register"
+                        "/api/admin/register",
+                        "/api/v1/admin/login",
+                        "/api/v1/admin/public-key",
+                        "/api/v1/admin/register"
                 );
     }
 }

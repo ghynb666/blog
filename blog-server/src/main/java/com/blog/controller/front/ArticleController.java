@@ -1,4 +1,4 @@
-package com.blog.controller.front;
+﻿package com.blog.controller.front;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.common.Result;
@@ -17,7 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController("frontArticleController")
-@RequestMapping("/api")
+@RequestMapping({"/api", "/api/v1"})
 public class ArticleController {
 
     @Resource

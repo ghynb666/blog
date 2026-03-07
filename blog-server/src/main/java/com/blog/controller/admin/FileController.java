@@ -1,6 +1,7 @@
-package com.blog.controller.admin;
+﻿package com.blog.controller.admin;
 
-import com.blog.annotation.RequireAuth;
+import com.blog.common.AppException;
+import com.blog.common.ErrorCode;
 import com.blog.common.Result;
 import com.blog.config.MinioConfig;
 import io.minio.*;
@@ -17,7 +18,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping({"/api/admin", "/api/v1/admin"})
 public class FileController {
 
     @Resource
@@ -35,12 +36,11 @@ public class FileController {
                 minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
             }
         } catch (Exception e) {
-            throw new RuntimeException("初始化MinIO Bucket失败: " + e.getMessage());
+            throw new AppException(ErrorCode.STORAGE_ERROR, "MinIO bucket initialization failed: " + e.getMessage());
         }
     }
 
     @PostMapping("/upload")
-    @RequireAuth
     public Result<Map<String, String>> upload(@RequestParam("file") MultipartFile file) {
         try {
             String originalFilename = file.getOriginalFilename();
@@ -56,17 +56,16 @@ public class FileController {
                             .contentType(file.getContentType())
                             .build()
             );
-            String url = "/api/admin/file/" + objectName;
+            String url = "/api/v1/admin/file/" + objectName;
             Map<String, String> result = new HashMap<>();
             result.put("url", url);
             return Result.success(result);
         } catch (Exception e) {
-            return Result.error("上传失败: " + e.getMessage());
+            return Result.error(ErrorCode.STORAGE_ERROR.getCode(), "Upload failed: " + e.getMessage());
         }
     }
 
     @GetMapping("/file/{year}/{month}/{day}/{filename:.+}")
-    @RequireAuth
     public void getFile(
             @PathVariable String year,
             @PathVariable String month,
@@ -99,7 +98,7 @@ public class FileController {
         String year = String.valueOf(now.getYear());
         String month = String.format("%02d", now.getMonthValue());
         String day = String.format("%02d", now.getDayOfMonth());
-        String fileName = UUID.randomUUID().toString() + extension;
+        String fileName = UUID.randomUUID() + extension;
         return year + "/" + month + "/" + day + "/" + fileName;
     }
 
