@@ -1,4 +1,4 @@
-﻿package com.blog.controller.front;
+package com.blog.controller.front;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.common.Result;

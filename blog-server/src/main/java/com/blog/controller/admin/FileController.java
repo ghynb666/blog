@@ -1,4 +1,4 @@
-﻿package com.blog.controller.admin;
+package com.blog.controller.admin;
 
 import com.blog.common.AppException;
 import com.blog.common.ErrorCode;

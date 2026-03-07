@@ -1,4 +1,4 @@
-﻿package com.blog.event.publisher;
+package com.blog.event.publisher;
 
 import com.blog.event.ArticlePublishedEvent;
 import com.blog.event.ArticleUpdatedEvent;

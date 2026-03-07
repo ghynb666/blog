@@ -1,4 +1,4 @@
-﻿package com.blog.event;
+package com.blog.event;
 
 public class ArticleViewedEvent extends BaseDomainEvent<ArticleViewedEvent.Payload> {
 

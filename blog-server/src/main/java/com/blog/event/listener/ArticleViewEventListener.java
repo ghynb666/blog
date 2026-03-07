@@ -1,4 +1,4 @@
-﻿package com.blog.event.listener;
+package com.blog.event.listener;
 
 import com.blog.entity.Article;
 import com.blog.event.ArticleViewedEvent;

@@ -1,4 +1,4 @@
-﻿package com.blog.filter;
+package com.blog.filter;
 
 import com.blog.common.RequestContext;
 import org.springframework.stereotype.Component;

@@ -1,4 +1,4 @@
-﻿package com.blog.common;
+package com.blog.common;
 
 public class AppException extends RuntimeException {
 

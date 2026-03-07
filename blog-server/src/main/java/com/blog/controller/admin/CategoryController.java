@@ -1,4 +1,4 @@
-﻿package com.blog.controller.admin;
+package com.blog.controller.admin;
 
 import com.blog.common.Result;
 import com.blog.dto.CategoryDTO;

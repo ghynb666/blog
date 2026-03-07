@@ -1,4 +1,4 @@
-﻿package com.blog.controller.admin;
+package com.blog.controller.admin;
 
 import cn.dev33.satoken.stp.StpUtil;
 import com.blog.common.Result;

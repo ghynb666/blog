@@ -1,4 +1,4 @@
-﻿package com.blog.event;
+package com.blog.event;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

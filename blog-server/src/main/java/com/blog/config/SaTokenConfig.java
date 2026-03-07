@@ -1,4 +1,4 @@
-﻿package com.blog.config;
+package com.blog.config;
 
 import cn.dev33.satoken.interceptor.SaInterceptor;
 import cn.dev33.satoken.stp.StpUtil;

@@ -1,4 +1,4 @@
-﻿package com.blog.common;
+package com.blog.common;
 
 import cn.dev33.satoken.exception.NotLoginException;
 import org.springframework.validation.BindException;

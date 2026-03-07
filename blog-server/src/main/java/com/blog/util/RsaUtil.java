@@ -1,4 +1,4 @@
-﻿package com.blog.util;
+package com.blog.util;
 
 import com.blog.common.AppException;
 import com.blog.common.ErrorCode;

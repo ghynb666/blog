@@ -1,4 +1,4 @@
-﻿package com.blog.controller.front;
+package com.blog.controller.front;
 
 import com.blog.common.Result;
 import com.blog.event.publisher.ArticleDomainEventPublisher;

@@ -1,15 +1,15 @@
 package com.blog.util;
 
-import cn.dev33.satoken.secure.SaSecureUtil;
+import cn.dev33.satoken.secure.BCrypt;
 
 public class PasswordUtil {
 
     public static String hash(String password) {
-        return SaSecureUtil.bCrypt(password);
+        return BCrypt.hashpw(password);
     }
 
     public static boolean check(String password, String hash) {
-        return SaSecureUtil.checkBCrypt(password, hash);
+        return BCrypt.checkpw(password, hash);
     }
 
     public static boolean isBCrypt(String hash) {

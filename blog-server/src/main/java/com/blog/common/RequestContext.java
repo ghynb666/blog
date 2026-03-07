@@ -1,4 +1,4 @@
-﻿package com.blog.common;
+package com.blog.common;
 
 public final class RequestContext {
 
