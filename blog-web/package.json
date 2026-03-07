@@ -14,7 +14,8 @@
     "axios": "^1.6.0",
     "element-plus": "^2.4.0",
     "marked": "^11.0.0",
-    "highlight.js": "^11.9.0"
+    "highlight.js": "^11.9.0",
+    "jsencrypt": "^3.3.2"
   },
   "devDependencies": {
     "vite": "^5.0.0",

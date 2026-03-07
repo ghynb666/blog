@@ -85,6 +85,7 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/user'
 import { useThemeStore } from '@/store/theme'
+import { encryptPassword } from '@/utils/rsa'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -102,7 +103,11 @@ const handleLogin = async () => {
   await formRef.value.validate()
   loading.value = true
   try {
-    await userStore.login(form)
+    const encryptedPassword = await encryptPassword(form.password)
+    await userStore.login({
+      username: form.username,
+      password: encryptedPassword
+    })
     ElMessage.success('登录成功')
     router.push('/admin')
   } catch (e) {
