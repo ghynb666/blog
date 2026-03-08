@@ -82,15 +82,18 @@ CREATE TABLE `article_comment` (
   `id` BIGINT NOT NULL AUTO_INCREMENT,
   `article_id` BIGINT NOT NULL,
   `user_id` BIGINT NOT NULL,
+  `parent_id` BIGINT DEFAULT NULL,
   `content` VARCHAR(500) NOT NULL,
   `status` TINYINT NOT NULL DEFAULT 1,
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_article_comment_article_id` (`article_id`),
   KEY `idx_article_comment_user_id` (`user_id`),
+  KEY `idx_article_comment_parent_id` (`parent_id`),
   KEY `idx_article_comment_created_at` (`created_at`),
   CONSTRAINT `fk_article_comment_article` FOREIGN KEY (`article_id`) REFERENCES `article` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_article_comment_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE
+  CONSTRAINT `fk_article_comment_user` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_article_comment_parent` FOREIGN KEY (`parent_id`) REFERENCES `article_comment` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `article_like` (
@@ -138,6 +141,8 @@ ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `role` VARCHAR(20) NOT NULL DEFAULT 
 ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `email` VARCHAR(100) DEFAULT NULL AFTER `username`;
 ALTER TABLE `user` ADD INDEX IF NOT EXISTS `idx_role` (`role`);
 ALTER TABLE `user` ADD UNIQUE INDEX IF NOT EXISTS `uk_email` (`email`);
+ALTER TABLE `article_comment` ADD COLUMN IF NOT EXISTS `parent_id` BIGINT DEFAULT NULL AFTER `user_id`;
+ALTER TABLE `article_comment` ADD INDEX IF NOT EXISTS `idx_article_comment_parent_id` (`parent_id`);
 UPDATE `user` SET `role`='ADMIN' WHERE `username`='admin';
 UPDATE `user` SET `role`='USER' WHERE `role` IS NULL OR `role`='';
 UPDATE `user` SET `email`=CONCAT(`username`, '@example.com') WHERE `email` IS NULL OR `email`='';

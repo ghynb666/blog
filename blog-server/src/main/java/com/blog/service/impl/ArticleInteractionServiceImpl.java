@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,12 +54,35 @@ public class ArticleInteractionServiceImpl implements ArticleInteractionService 
         List<ArticleComment> comments = articleCommentMapper.selectList(new LambdaQueryWrapper<ArticleComment>()
                 .eq(ArticleComment::getArticleId, articleId)
                 .eq(ArticleComment::getStatus, 1)
-                .orderByDesc(ArticleComment::getCreatedAt));
+                .orderByAsc(ArticleComment::getCreatedAt));
         List<Long> userIds = comments.stream().map(ArticleComment::getUserId).distinct().collect(Collectors.toList());
         Map<Long, User> users = userIds.isEmpty()
                 ? Map.of()
                 : userMapper.selectBatchIds(userIds).stream().collect(Collectors.toMap(User::getId, user -> user));
-        return comments.stream().map(comment -> toCommentVO(comment, users.get(comment.getUserId()))).collect(Collectors.toList());
+        Map<Long, ArticleComment> commentMap = comments.stream().collect(Collectors.toMap(ArticleComment::getId, comment -> comment));
+        Map<Long, ArticleCommentVO> voMap = comments.stream().collect(Collectors.toMap(
+                ArticleComment::getId,
+                comment -> toCommentVO(comment, users.get(comment.getUserId()), resolveReplyUser(comment, commentMap, users))
+        ));
+
+        List<ArticleCommentVO> roots = comments.stream()
+                .map(comment -> voMap.get(comment.getId()))
+                .filter(vo -> {
+                    if (vo.getParentId() == null) {
+                        return true;
+                    }
+                    ArticleCommentVO parent = voMap.get(vo.getParentId());
+                    if (parent == null) {
+                        vo.setParentId(null);
+                        return true;
+                    }
+                    parent.getChildren().add(vo);
+                    return false;
+                })
+                .sorted(Comparator.comparing(ArticleCommentVO::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
+                .collect(Collectors.toList());
+        sortChildren(roots);
+        return roots;
     }
 
     @Override
@@ -73,13 +97,21 @@ public class ArticleInteractionServiceImpl implements ArticleInteractionService 
         ArticleComment comment = new ArticleComment();
         comment.setArticleId(articleId);
         comment.setUserId(userId);
+        comment.setParentId(resolveParentId(articleId, dto.getParentId()));
         comment.setContent(dto.getContent().trim());
         comment.setStatus(1);
         articleCommentMapper.insert(comment);
         growthEventService.record("article_commented", userId, articleId, "{\"source\":\"article-detail\"}");
 
         User user = userMapper.selectById(userId);
-        return toCommentVO(comment, user);
+        User replyToUser = null;
+        if (comment.getParentId() != null) {
+            ArticleComment parentComment = articleCommentMapper.selectById(comment.getParentId());
+            if (parentComment != null) {
+                replyToUser = userMapper.selectById(parentComment.getUserId());
+            }
+        }
+        return toCommentVO(comment, user, replyToUser);
     }
 
     @Override
@@ -140,21 +172,61 @@ public class ArticleInteractionServiceImpl implements ArticleInteractionService 
         return vo;
     }
 
-    private ArticleCommentVO toCommentVO(ArticleComment comment, User user) {
+    private Long resolveParentId(Long articleId, Long parentId) {
+        if (parentId == null) {
+            return null;
+        }
+        ArticleComment parentComment = articleCommentMapper.selectById(parentId);
+        if (parentComment == null || parentComment.getStatus() == null || parentComment.getStatus() != 1) {
+            throw new AppException(ErrorCode.COMMENT_NOT_FOUND);
+        }
+        if (!articleId.equals(parentComment.getArticleId())) {
+            throw new AppException(ErrorCode.BAD_REQUEST);
+        }
+        return parentComment.getId();
+    }
+
+    private User resolveReplyUser(ArticleComment comment, Map<Long, ArticleComment> commentMap, Map<Long, User> users) {
+        if (comment.getParentId() == null) {
+            return null;
+        }
+        ArticleComment parentComment = commentMap.get(comment.getParentId());
+        if (parentComment == null) {
+            return null;
+        }
+        return users.get(parentComment.getUserId());
+    }
+
+    private void sortChildren(List<ArticleCommentVO> comments) {
+        comments.forEach(comment -> {
+            comment.getChildren().sort(Comparator.comparing(ArticleCommentVO::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())));
+            sortChildren(comment.getChildren());
+        });
+    }
+
+    private ArticleCommentVO toCommentVO(ArticleComment comment, User user, User replyToUser) {
         ArticleCommentVO vo = new ArticleCommentVO();
         vo.setId(comment.getId());
         vo.setArticleId(comment.getArticleId());
+        vo.setParentId(comment.getParentId());
         vo.setContent(comment.getContent());
         vo.setStatus(comment.getStatus());
         vo.setCreatedAt(comment.getCreatedAt());
         if (user != null) {
-            ArticleCommentVO.UserSummary summary = new ArticleCommentVO.UserSummary();
-            summary.setId(user.getId());
-            summary.setUsername(user.getUsername());
-            summary.setNickname(user.getNickname());
-            summary.setAvatar(user.getAvatar());
-            vo.setUser(summary);
+            vo.setUser(toUserSummary(user));
+        }
+        if (replyToUser != null) {
+            vo.setReplyToUser(toUserSummary(replyToUser));
         }
         return vo;
+    }
+
+    private ArticleCommentVO.UserSummary toUserSummary(User user) {
+        ArticleCommentVO.UserSummary summary = new ArticleCommentVO.UserSummary();
+        summary.setId(user.getId());
+        summary.setUsername(user.getUsername());
+        summary.setNickname(user.getNickname());
+        summary.setAvatar(user.getAvatar());
+        return summary;
     }
 }

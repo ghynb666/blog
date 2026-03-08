@@ -48,15 +48,20 @@
       <div class="section-header">
         <div>
           <p class="eyebrow">Comments</p>
-          <h2>{{ comments.length }} conversations</h2>
+          <h2>{{ totalCommentCount }} comments · {{ comments.length }} conversations</h2>
         </div>
         <router-link v-if="!userStore.token" to="/login" class="login-link">Login to join</router-link>
       </div>
 
       <form class="comment-form" @submit.prevent="handleComment">
+        <div v-if="replyingTo" class="reply-banner">
+          <span>Replying to {{ displayName(replyingTo.user) }}</span>
+          <button type="button" class="reply-cancel" @click="cancelReply">Cancel</button>
+        </div>
         <textarea
+          ref="commentInput"
           v-model.trim="commentForm.content"
-          :placeholder="userStore.token ? 'Write something useful...' : 'Login first to comment...'"
+          :placeholder="commentPlaceholder"
           :disabled="!userStore.token || submitting.comment"
           maxlength="500"
         />
@@ -69,16 +74,7 @@
       </form>
 
       <div class="comment-list">
-        <article v-for="comment in comments" :key="comment.id" class="comment-card">
-          <div class="comment-avatar">{{ avatarText(comment.user) }}</div>
-          <div class="comment-body">
-            <div class="comment-meta">
-              <strong>{{ comment.user?.nickname || comment.user?.username || 'User' }}</strong>
-              <span>{{ formatDateTime(comment.createdAt) }}</span>
-            </div>
-            <p>{{ comment.content }}</p>
-          </div>
-        </article>
+        <CommentThread v-for="comment in comments" :key="comment.id" :comment="comment" @reply="startReply" />
         <div v-if="comments.length === 0" class="empty-comments">No comments yet. Be the first one.</div>
       </div>
     </section>
@@ -99,6 +95,7 @@ import 'highlight.js/styles/github.css'
 import { frontApi } from '@/api/front'
 import { useUserStore } from '@/store/user'
 import Toc from '@/components/Toc.vue'
+import CommentThread from '@/components/CommentThread.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -106,8 +103,9 @@ const userStore = useUserStore()
 const article = ref(null)
 const comments = ref([])
 const headings = ref([])
+const commentInput = ref(null)
 const interaction = reactive({ commentCount: 0, likeCount: 0, liked: false })
-const commentForm = reactive({ content: '' })
+const commentForm = reactive({ content: '', parentId: null })
 const subscription = reactive({ email: userStore.userInfo?.email || '' })
 const submitting = reactive({ comment: false, subscribe: false, like: false })
 
@@ -119,6 +117,18 @@ marked.setOptions({
 const htmlContent = computed(() => {
   if (!article.value?.content) return ''
   return marked.parse(article.value.content)
+})
+
+const replyingTo = computed(() => findCommentById(comments.value, commentForm.parentId))
+
+const totalCommentCount = computed(() => countComments(comments.value))
+
+const commentPlaceholder = computed(() => {
+  if (!userStore.token) return 'Login first to comment...'
+  if (replyingTo.value) {
+    return `Reply to ${displayName(replyingTo.value.user)}...`
+  }
+  return 'Write something useful...'
 })
 
 watch(htmlContent, async () => {
@@ -155,6 +165,16 @@ const loadDetail = async () => {
   Object.assign(interaction, interactionRes.data || {})
 }
 
+const loadComments = async () => {
+  const res = await frontApi.getComments(route.params.id)
+  comments.value = res.data || []
+}
+
+const loadInteraction = async () => {
+  const res = await frontApi.getArticleInteraction(route.params.id)
+  Object.assign(interaction, res.data || {})
+}
+
 const handleToggleLike = async () => {
   if (!userStore.token) {
     router.push('/login')
@@ -176,14 +196,31 @@ const handleComment = async () => {
   }
   submitting.comment = true
   try {
-    const res = await frontApi.createComment(route.params.id, { content: commentForm.content })
-    comments.value.unshift(res.data)
+    await frontApi.createComment(route.params.id, {
+      content: commentForm.content,
+      parentId: commentForm.parentId
+    })
+    await Promise.all([loadComments(), loadInteraction()])
     commentForm.content = ''
-    interaction.commentCount = comments.value.length
+    commentForm.parentId = null
     ElMessage.success('Comment posted')
   } finally {
     submitting.comment = false
   }
+}
+
+const startReply = async comment => {
+  if (!userStore.token) {
+    router.push('/login')
+    return
+  }
+  commentForm.parentId = comment.id
+  await nextTick()
+  commentInput.value?.focus()
+}
+
+const cancelReply = () => {
+  commentForm.parentId = null
 }
 
 const handleSubscribe = async () => {
@@ -241,18 +278,19 @@ const formatDate = value => {
   return new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value))
 }
 
-const formatDateTime = value => {
-  if (!value) return ''
-  return new Intl.DateTimeFormat('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(new Date(value))
-}
+const displayName = user => user?.nickname || user?.username || 'User'
 
-const avatarText = user => (user?.nickname || user?.username || 'U').slice(0, 1).toUpperCase()
+const countComments = items => items.reduce((total, item) => total + 1 + countComments(item.children || []), 0)
+
+const findCommentById = (items, id) => {
+  if (!id) return null
+  for (const item of items) {
+    if (item.id === id) return item
+    const child = findCommentById(item.children || [], id)
+    if (child) return child
+  }
+  return null
+}
 
 onMounted(loadDetail)
 </script>
@@ -372,6 +410,28 @@ onMounted(loadDetail)
 }
 .login-link { color: var(--accent); text-decoration: none; font-weight: 600; }
 .comment-form { margin-top: 20px; }
+.reply-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border: 1px solid rgba(196, 93, 62, 0.18);
+  border-radius: 14px;
+  background: linear-gradient(90deg, rgba(196, 93, 62, 0.12), rgba(196, 93, 62, 0.04));
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 600;
+}
+.reply-cancel {
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-weight: 700;
+}
 .comment-form textarea {
   min-height: 120px;
   resize: vertical;
@@ -386,34 +446,6 @@ onMounted(loadDetail)
   font-size: 13px;
 }
 .comment-list { margin-top: 20px; display: flex; flex-direction: column; gap: 14px; }
-.comment-card {
-  display: flex;
-  gap: 14px;
-  padding: 18px;
-  background: var(--bg);
-  border-radius: 16px;
-  border: 1px solid var(--border);
-}
-.comment-avatar {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-.comment-meta {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 8px;
-}
-.comment-meta span { color: var(--muted); font-size: 13px; }
-.comment-body p { margin: 0; white-space: pre-wrap; }
 .empty-comments {
   padding: 24px;
   border: 1px dashed var(--border);

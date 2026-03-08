@@ -86,3 +86,5 @@ INSERT INTO `growth_event` (`event_type`, `user_id`, `article_id`, `event_data`,
 ('article_liked', 2, 2, '{"source":"seed"}', NOW()),
 ('subscription_created', NULL, NULL, '{"sourcePage":"/"}', DATE_SUB(NOW(), INTERVAL 3 DAY)),
 ('subscription_created', NULL, NULL, '{"sourcePage":"/article/1"}', DATE_SUB(NOW(), INTERVAL 1 DAY));
+
+UPDATE `article_comment` SET `parent_id` = 1 WHERE `id` = 2 AND `article_id` = 1;

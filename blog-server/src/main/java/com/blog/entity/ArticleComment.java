@@ -16,6 +16,8 @@ public class ArticleComment extends BaseEntity {
 
     private Long userId;
 
+    private Long parentId;
+
     private String content;
 
     private Integer status;

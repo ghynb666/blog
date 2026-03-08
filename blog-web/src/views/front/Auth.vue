@@ -24,7 +24,7 @@
             <input
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
-              minlength="6"
+              :minlength="isLogin ? undefined : 6"
               maxlength="100"
               required
             />
