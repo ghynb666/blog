@@ -20,7 +20,23 @@
         </label>
         <label>
           <span>Password</span>
-          <input v-model="form.password" type="password" minlength="6" maxlength="100" required />
+          <div class="password-field">
+            <input
+              v-model="form.password"
+              :type="showPassword ? 'text' : 'password'"
+              minlength="6"
+              maxlength="100"
+              required
+            />
+            <button
+              type="button"
+              class="toggle-password"
+              :aria-label="showPassword ? 'Hide password' : 'Show password'"
+              @click="showPassword = !showPassword"
+            >
+              <span class="password-icon" :style="{ '--icon-url': `url(${passwordIcon})` }" aria-hidden="true"></span>
+            </button>
+          </div>
         </label>
         <button type="submit" :disabled="loading">{{ loading ? 'Submitting...' : (isLogin ? 'Login' : 'Register') }}</button>
       </form>
@@ -39,13 +55,17 @@ import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { encryptPassword } from '@/utils/rsa'
 import { useUserStore } from '@/store/user'
+import eyeOpenIcon from '@/static/eye-open.svg'
+import eyeCloseIcon from '@/static/aye-close.svg'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
+const showPassword = ref(false)
 const form = reactive({ username: '', email: '', nickname: '', password: '' })
 const isLogin = computed(() => route.path === '/login')
+const passwordIcon = computed(() => (showPassword.value ? eyeOpenIcon : eyeCloseIcon))
 
 const handleSubmit = async () => {
   loading.value = true
@@ -118,8 +138,55 @@ h1 {
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--fg);
+  width: 100%;
+  box-sizing: border-box;
 }
-.auth-form button {
+.password-field {
+  position: relative;
+}
+.password-field input {
+  padding-right: 64px;
+}
+.toggle-password {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--fg);
+  z-index: 2;
+}
+.password-icon {
+  width: 20px;
+  height: 20px;
+  display: block;
+  background-color: currentColor;
+  -webkit-mask-image: var(--icon-url);
+  mask-image: var(--icon-url);
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+.toggle-password:hover {
+  color: var(--accent);
+}
+.toggle-password:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+.auth-form > button {
   margin-top: 8px;
   border: none;
   border-radius: 16px;
@@ -142,5 +209,7 @@ h1 {
 @media (max-width: 640px) {
   .auth-card { padding: 24px 20px; }
   h1 { font-size: 30px; }
+  .password-field input { padding-right: 60px; }
+  .toggle-password { right: 16px; }
 }
 </style>

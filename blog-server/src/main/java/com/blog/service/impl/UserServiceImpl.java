@@ -18,6 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
 
@@ -29,12 +33,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     @Override
     public LoginVO loginAdmin(LoginDTO dto) {
-        return loginByRole(dto, UserRole.ADMIN);
+        return loginByRoles(dto, UserRole.ADMIN);
     }
 
     @Override
     public LoginVO loginUser(LoginDTO dto) {
-        return loginByRole(dto, UserRole.USER);
+        return loginByRoles(dto, UserRole.USER, UserRole.ADMIN);
     }
 
     @Override
@@ -52,13 +56,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         return null;
     }
 
-    private LoginVO loginByRole(LoginDTO dto, UserRole expectedRole) {
+    private LoginVO loginByRoles(LoginDTO dto, UserRole... allowedRoles) {
         User user = getOne(new LambdaQueryWrapper<User>()
                 .eq(User::getUsername, dto.getUsername()));
         if (user == null) {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
-        if (!expectedRole.name().equalsIgnoreCase(user.getRole())) {
+        Set<String> allowedRoleNames = Arrays.stream(allowedRoles)
+                .map(Enum::name)
+                .collect(Collectors.toSet());
+        if (!allowedRoleNames.contains(user.getRole())) {
             throw new AppException(ErrorCode.ROLE_FORBIDDEN);
         }
 
@@ -80,7 +87,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         StpUtil.login(user.getId());
-        growthEventService.record("user_logged_in", user.getId(), null, "{\"role\":\"" + expectedRole.name() + "\"}");
+        growthEventService.record("user_logged_in", user.getId(), null, "{\"role\":\"" + user.getRole() + "\"}");
 
         return buildLoginVO(user);
     }
