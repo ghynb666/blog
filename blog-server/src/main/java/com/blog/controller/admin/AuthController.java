@@ -4,7 +4,6 @@ import cn.dev33.satoken.stp.StpUtil;
 import com.blog.common.Result;
 import com.blog.dto.LoginDTO;
 import com.blog.dto.RegisterDTO;
-import com.blog.entity.User;
 import com.blog.service.UserService;
 import com.blog.util.RsaUtil;
 import com.blog.vo.LoginVO;
@@ -50,8 +49,8 @@ public class AuthController {
     }
 
     @GetMapping("/info")
-    public Result<User> info() {
+    public Result<LoginVO.UserInfo> info() {
         Long userId = StpUtil.getLoginIdAsLong();
-        return Result.success(userService.getById(userId));
+        return Result.success(LoginVO.UserInfo.fromUser(userService.getById(userId)));
     }
 }

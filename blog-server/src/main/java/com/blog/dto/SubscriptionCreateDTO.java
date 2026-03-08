@@ -7,23 +7,13 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 @Data
-public class RegisterDTO {
+public class SubscriptionCreateDTO {
 
     @NotBlank(message = "cannot be blank")
-    @Size(max = 50, message = "length must be <= 50")
-    private String username;
-
     @Email(message = "must be a valid email")
     @Size(max = 100, message = "length must be <= 100")
     private String email;
 
-    @NotBlank(message = "cannot be blank")
-    @Size(min = 6, max = 100, message = "length must be between 6 and 100")
-    private String password;
-
-    @Size(max = 50, message = "length must be <= 50")
-    private String nickname;
-
     @Size(max = 255, message = "length must be <= 255")
-    private String avatar;
+    private String sourcePage;
 }

@@ -17,7 +17,13 @@ public enum ErrorCode {
     RSA_DECRYPT_FAILED(2006, "RSA decrypt failed"),
     STORAGE_ERROR(2007, "Storage operation failed"),
     USERNAME_ALREADY_EXISTS(2008, "Username already exists"),
-    ROLE_FORBIDDEN(2009, "Role forbidden");
+    ROLE_FORBIDDEN(2009, "Role forbidden"),
+    EMAIL_ALREADY_EXISTS(2010, "Email already exists"),
+    COMMENT_NOT_FOUND(2011, "Comment not found"),
+    COMMENT_TOO_FREQUENT(2012, "Commenting too frequently"),
+    SUBSCRIPTION_ALREADY_EXISTS(2013, "Subscription already exists"),
+    SUBSCRIPTION_TOO_FREQUENT(2014, "Submitting too frequently"),
+    ARTICLE_INTERACTION_FORBIDDEN(2015, "Interaction is not available");
 
     private final int code;
     private final String message;

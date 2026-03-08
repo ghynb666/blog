@@ -156,9 +156,9 @@ onMounted(async () => {
   }
 })
 
-const handleCommand = cmd => {
+const handleCommand = async cmd => {
   if (cmd === 'logout') {
-    userStore.logout()
+    await userStore.logout(true, true)
     router.push('/admin/login')
   }
 }

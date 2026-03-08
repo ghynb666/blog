@@ -7,33 +7,54 @@
           <span class="logo-text">Blog</span>
         </router-link>
         <nav class="nav">
-          <router-link to="/" class="nav-link">
-            <span class="nav-text">首页</span>
-            <span class="nav-line"></span>
-          </router-link>
-          <router-link to="/archives" class="nav-link">
-            <span class="nav-text">归档</span>
-            <span class="nav-line"></span>
-          </router-link>
-          <a class="nav-link" @click="toggleTheme">
-            <span class="nav-text">{{ isDark ? '☀' : '☾' }}</span>
-          </a>
+          <router-link to="/" class="nav-link">Home</router-link>
+          <router-link to="/archives" class="nav-link">Archives</router-link>
+          <a class="nav-link" @click="toggleTheme">{{ isDark ? 'Light' : 'Dark' }}</a>
         </nav>
+        <div class="auth-actions">
+          <template v-if="userStore.userInfo">
+            <div class="user-pill">
+              <span class="user-name">{{ userStore.userInfo.nickname || userStore.userInfo.username }}</span>
+              <span class="user-role">{{ userStore.userInfo.role }}</span>
+            </div>
+            <router-link v-if="userStore.userInfo.role === 'ADMIN'" to="/admin/dashboard" class="ghost-btn">Dashboard</router-link>
+            <button class="ghost-btn" @click="handleLogout">Logout</button>
+          </template>
+          <template v-else>
+            <router-link to="/login" class="ghost-btn">Login</router-link>
+            <router-link to="/register" class="solid-btn">Register</router-link>
+          </template>
+        </div>
       </div>
     </header>
+
     <main class="main">
+      <div class="hero">
+        <div class="hero-copy">
+          <p class="hero-kicker">P0 Growth Loop</p>
+          <h1>Publish, interact, subscribe, measure.</h1>
+          <p>在现有博客之上补齐用户沉淀和增长闭环，让内容不再只是被浏览，而是能够被互动、订阅和复盘。</p>
+        </div>
+        <form class="hero-subscribe" @submit.prevent="handleSubscribe">
+          <label>Subscribe for updates</label>
+          <div class="subscribe-row">
+            <input v-model.trim="heroEmail" type="email" placeholder="you@example.com" />
+            <button type="submit">Join</button>
+          </div>
+          <span class="subscribe-note">来源页会记录为首页，用于 P0 转化统计。</span>
+        </form>
+      </div>
+
       <div class="main-inner">
         <div class="content"><router-view /></div>
         <aside class="sidebar">
           <div class="widget about-widget">
             <div class="avatar"></div>
-            <h3 class="widget-title">关于博主</h3>
-            <p class="about-text">热爱技术，热爱生活。记录学习与成长的点滴。</p>
+            <h3 class="widget-title">About This Blog</h3>
+            <p class="about-text">聚焦工程实践、前端体验和内容产品演进，用最小投入验证真实增长。</p>
           </div>
           <div class="widget">
-            <h3 class="widget-title">
-              <span class="title-icon">#</span>分类
-            </h3>
+            <h3 class="widget-title"><span class="title-icon">#</span>Categories</h3>
             <ul class="category-list">
               <li v-for="c in categories" :key="c.id" @click="onCategoryClick(c.id)">
                 <span class="cat-name">{{ c.name }}</span>
@@ -42,65 +63,76 @@
             </ul>
           </div>
           <div class="widget">
-            <h3 class="widget-title">
-              <span class="title-icon">♦</span>标签
-            </h3>
+            <h3 class="widget-title"><span class="title-icon">+</span>Tags</h3>
             <TagCloud :tags="tags" v-model="selectedTagIds" @change="onTagChange" />
           </div>
         </aside>
       </div>
     </main>
+
     <footer class="footer">
       <div class="footer-inner">
-        <p>© 2024 Blog. Made with ♥</p>
+        <p>2026 Blog | <a href="/sitemap.xml" target="_blank">Sitemap</a> | <a href="/rss.xml" target="_blank">RSS</a></p>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import { frontApi } from '@/api/front'
+import { useUserStore } from '@/store/user'
 import TagCloud from '@/components/TagCloud.vue'
+
 const router = useRouter()
 const route = useRoute()
+const userStore = useUserStore()
 const categories = ref([])
 const tags = ref([])
 const selectedTagIds = ref([])
+const heroEmail = ref('')
 const isDark = ref(false)
+
 const currentCategoryId = computed(() => {
   const match = route.path.match(/^\/category\/(\d+)/)
   return match ? Number(match[1]) : null
 })
-watch(() => route.query.tagIds, val => {
-  if (val) {
-    selectedTagIds.value = val.split(',').map(Number)
-  } else {
-    selectedTagIds.value = []
-  }
-}, { immediate: true })
+
+watch(
+  () => route.query.tagIds,
+  val => {
+    selectedTagIds.value = val ? val.split(',').map(Number) : []
+  },
+  { immediate: true }
+)
+
 onMounted(async () => {
   const [cRes, tRes] = await Promise.all([frontApi.getCategories(), frontApi.getTags()])
   categories.value = cRes.data || []
   tags.value = tRes.data || []
+  if (userStore.token && !userStore.userInfo) {
+    try {
+      await userStore.getProfile()
+    } catch (e) {
+      await userStore.logout()
+    }
+  }
+  if (userStore.userInfo?.email) {
+    heroEmail.value = userStore.userInfo.email
+  }
 })
+
 const onTagChange = ids => {
   selectedTagIds.value = ids
   if (ids.length > 0) {
-    if (currentCategoryId.value) {
-      router.push(`/category/${currentCategoryId.value}?tagIds=${ids.join(',')}`)
-    } else {
-      router.push(`/tags/${ids.join(',')}`)
-    }
+    router.push(currentCategoryId.value ? `/category/${currentCategoryId.value}?tagIds=${ids.join(',')}` : `/tags/${ids.join(',')}`)
   } else {
-    if (currentCategoryId.value) {
-      router.push(`/category/${currentCategoryId.value}`)
-    } else {
-      router.push('/')
-    }
+    router.push(currentCategoryId.value ? `/category/${currentCategoryId.value}` : '/')
   }
 }
+
 const onCategoryClick = id => {
   if (selectedTagIds.value.length > 0) {
     router.push(`/category/${id}?tagIds=${selectedTagIds.value.join(',')}`)
@@ -108,151 +140,234 @@ const onCategoryClick = id => {
     router.push(`/category/${id}`)
   }
 }
+
 const toggleTheme = () => {
   isDark.value = !isDark.value
   document.documentElement.classList.toggle('dark', isDark.value)
 }
+
+const handleSubscribe = async () => {
+  await frontApi.subscribe({ email: heroEmail.value, sourcePage: '/' })
+  ElMessage.success('Subscription saved')
+}
+
+const handleLogout = async () => {
+  await userStore.logout(true, false)
+  router.push('/')
+}
 </script>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap');
 :root {
-  --bg: #faf9f7;
-  --fg: #1a1a1a;
-  --muted: #6b6b6b;
+  --bg: #faf7f1;
+  --fg: #1f1b18;
+  --muted: #71655a;
   --accent: #c45d3e;
-  --accent-light: #e8d5cf;
-  --card: #ffffff;
-  --border: #e8e6e3;
-  --shadow: rgba(0,0,0,0.06);
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-body: 'Source Sans 3', -apple-system, sans-serif;
+  --accent-light: #f1ddd6;
+  --card: rgba(255,255,255,0.88);
+  --border: #eadfd6;
+  --shadow: rgba(61, 41, 23, 0.08);
+  --font-display: 'Playfair Display', serif;
+  --font-body: 'Source Sans 3', sans-serif;
 }
 .dark {
-  --bg: #141414;
-  --fg: #f5f5f5;
-  --muted: #9a9a9a;
+  --bg: #141211;
+  --fg: #f5ede7;
+  --muted: #b3a59a;
   --accent: #e07a5f;
-  --accent-light: #3a2a25;
-  --card: #1e1e1e;
-  --border: #2a2a2a;
-  --shadow: rgba(0,0,0,0.3);
+  --accent-light: #34241f;
+  --card: rgba(27,25,24,0.9);
+  --border: #2d2724;
+  --shadow: rgba(0,0,0,0.28);
 }
 html { scroll-behavior: smooth; }
 body {
+  margin: 0;
   font-family: var(--font-body);
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top left, rgba(196, 93, 62, 0.08), transparent 30%),
+    linear-gradient(180deg, var(--bg), #f4efe8 50%, var(--bg));
   color: var(--fg);
-  line-height: 1.6;
-  transition: background 0.4s, color 0.4s;
+}
+.dark body {
+  background:
+    radial-gradient(circle at top left, rgba(224, 122, 95, 0.12), transparent 24%),
+    linear-gradient(180deg, var(--bg), #171513 50%, var(--bg));
 }
 </style>
 
 <style scoped>
 .layout { min-height: 100vh; display: flex; flex-direction: column; }
 .header {
-  background: var(--card);
-  border-bottom: 1px solid var(--border);
   position: sticky;
   top: 0;
-  z-index: 100;
-  backdrop-filter: blur(10px);
-  background: rgba(255,255,255,0.9);
+  z-index: 50;
+  backdrop-filter: blur(14px);
+  background: rgba(250, 247, 241, 0.82);
+  border-bottom: 1px solid var(--border);
 }
-.dark .header { background: rgba(30,30,30,0.9); }
-.header-inner {
+.dark .header { background: rgba(20, 18, 17, 0.84); }
+.header-inner, .hero, .main-inner, .footer-inner {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 32px;
-  height: 72px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  padding-left: 24px;
+  padding-right: 24px;
 }
-.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.header-inner {
+  min-height: 76px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.logo { display: inline-flex; align-items: center; gap: 10px; color: var(--fg); text-decoration: none; }
 .logo-icon {
-  width: 36px;
-  height: 36px;
-  background: var(--accent);
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--accent), #d89a71);
   color: #fff;
-  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-display);
-  font-size: 20px;
   font-weight: 700;
 }
-.logo-text {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 600;
-  color: var(--fg);
-  letter-spacing: -0.5px;
-}
-.nav { display: flex; gap: 8px; }
+.logo-text { font-family: var(--font-display); font-size: 24px; }
+.nav, .auth-actions { display: flex; align-items: center; gap: 10px; }
 .nav-link {
-  position: relative;
-  padding: 8px 16px;
   color: var(--muted);
   text-decoration: none;
-  font-weight: 500;
-  font-size: 15px;
-  cursor: pointer;
-  transition: color 0.3s;
-}
-.nav-link:hover { color: var(--fg); }
-.nav-link.router-link-active { color: var(--accent); }
-.nav-line {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background: var(--accent);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: translateX(-50%);
-}
-.nav-link:hover .nav-line,
-.nav-link.router-link-active .nav-line { width: 24px; }
-.main { flex: 1; padding: 48px 0; }
-.main-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 32px;
-  display: flex;
-  gap: 48px;
-}
-.content { flex: 1; min-width: 0; }
-.sidebar { width: 300px; flex-shrink: 0; }
-.widget {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 24px;
-  margin-bottom: 24px;
-  border: 1px solid var(--border);
-  box-shadow: 0 4px 20px var(--shadow);
-}
-.widget-title {
-  font-family: var(--font-display);
-  font-size: 18px;
   font-weight: 600;
-  color: var(--fg);
-  margin: 0 0 16px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  cursor: pointer;
 }
-.title-icon { color: var(--accent); font-size: 14px; }
+.nav-link.router-link-active, .nav-link:hover { color: var(--accent); }
+.ghost-btn, .solid-btn {
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.ghost-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--fg);
+}
+.solid-btn {
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid var(--accent);
+}
+.user-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.user-role {
+  font-size: 12px;
+  background: var(--accent-light);
+  color: var(--accent);
+  padding: 4px 8px;
+  border-radius: 999px;
+}
+.main { flex: 1; padding: 28px 0 48px; }
+.hero {
+  margin-bottom: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  gap: 24px;
+}
+.hero-copy, .hero-subscribe, .widget {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 12px 40px var(--shadow);
+}
+.hero-copy {
+  padding: 32px;
+}
+.hero-copy h1 {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 48px;
+  line-height: 1.08;
+}
+.hero-copy p:last-child {
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+}
+.hero-kicker {
+  margin: 0 0 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+.hero-subscribe {
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hero-subscribe label {
+  font-family: var(--font-display);
+  font-size: 24px;
+  margin-bottom: 14px;
+}
+.subscribe-row {
+  display: flex;
+  gap: 12px;
+}
+.subscribe-row input {
+  flex: 1;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg);
+}
+.subscribe-row button {
+  border: none;
+  border-radius: 16px;
+  background: var(--accent);
+  color: #fff;
+  padding: 0 18px;
+  font-weight: 700;
+}
+.subscribe-note {
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.main-inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 32px;
+}
+.content { min-width: 0; }
+.sidebar { display: flex; flex-direction: column; gap: 20px; }
+.widget { padding: 24px; }
 .about-widget { text-align: center; }
 .avatar {
-  width: 80px;
-  height: 80px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  width: 86px;
+  height: 86px;
   border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), #d7b58c);
   margin: 0 auto 16px;
 }
-.about-text { color: var(--muted); font-size: 14px; margin: 0; }
+.widget-title {
+  margin: 0 0 16px;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+.about-text { margin: 0; color: var(--muted); }
+.title-icon { color: var(--accent); }
 .category-list { list-style: none; padding: 0; margin: 0; }
 .category-list li {
   display: flex;
@@ -261,38 +376,30 @@ body {
   padding: 12px 0;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
-  transition: all 0.3s;
 }
 .category-list li:last-child { border-bottom: none; }
-.category-list li:hover { padding-left: 8px; }
-.category-list li:hover .cat-name { color: var(--accent); }
-.cat-name { color: var(--fg); font-size: 14px; transition: color 0.3s; }
 .cat-count {
+  padding: 4px 8px;
+  border-radius: 999px;
   background: var(--accent-light);
   color: var(--accent);
   font-size: 12px;
-  font-weight: 600;
-  padding: 2px 10px;
-  border-radius: 12px;
+  font-weight: 700;
 }
 .footer {
-  background: var(--card);
   border-top: 1px solid var(--border);
-  padding: 32px;
+  background: rgba(255,255,255,0.5);
 }
-.footer-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  text-align: center;
+.dark .footer { background: rgba(0,0,0,0.16); }
+.footer-inner { padding-top: 24px; padding-bottom: 24px; }
+.footer p { margin: 0; text-align: center; color: var(--muted); }
+.footer a { color: var(--accent); text-decoration: none; }
+@media (max-width: 980px) {
+  .hero, .main-inner { grid-template-columns: 1fr; }
 }
-.footer p { color: var(--muted); font-size: 14px; margin: 0; }
-@media (max-width: 900px) {
-  .main-inner { flex-direction: column; }
-  .sidebar { width: 100%; }
-}
-@media (max-width: 600px) {
-  .header-inner { padding: 0 16px; height: 60px; }
-  .main-inner { padding: 0 16px; gap: 24px; }
-  .nav-link { padding: 8px 12px; font-size: 14px; }
+@media (max-width: 640px) {
+  .header-inner { flex-wrap: wrap; justify-content: center; padding-top: 16px; padding-bottom: 16px; }
+  .hero-copy h1 { font-size: 34px; }
+  .subscribe-row { flex-direction: column; }
 }
 </style>

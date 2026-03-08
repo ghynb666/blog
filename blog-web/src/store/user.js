@@ -19,10 +19,22 @@ export const useUserStore = defineStore('user', () => {
     return res
   }
 
+  async function loginFront(data) {
+    const res = await authApi.loginUser(data)
+    saveSession(res)
+    return res
+  }
+
   async function register(data, isAdmin = false) {
     const res = isAdmin
       ? await authApi.registerAdmin(data)
       : await authApi.registerUser(data)
+    saveSession(res)
+    return res
+  }
+
+  async function registerFront(data) {
+    const res = await authApi.registerUser(data)
     saveSession(res)
     return res
   }
@@ -34,12 +46,26 @@ export const useUserStore = defineStore('user', () => {
     return res
   }
 
-  function logout() {
+  async function getProfile() {
+    const res = await authApi.getProfile()
+    userInfo.value = res.data
+    localStorage.setItem('userInfo', JSON.stringify(res.data))
+    return res
+  }
+
+  async function logout(remote = false, isAdmin = false) {
+    if (remote) {
+      try {
+        await (isAdmin ? authApi.logout() : authApi.logoutUser())
+      } catch (e) {
+        console.error('logout failed', e)
+      }
+    }
     token.value = ''
     userInfo.value = null
     localStorage.removeItem('token')
     localStorage.removeItem('userInfo')
   }
 
-  return { token, userInfo, login, register, getInfo, logout }
+  return { token, userInfo, login, loginFront, register, registerFront, getInfo, getProfile, logout }
 })

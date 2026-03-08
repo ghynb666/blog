@@ -10,6 +10,7 @@ import com.blog.dto.RegisterDTO;
 import com.blog.entity.User;
 import com.blog.enums.UserRole;
 import com.blog.mapper.UserMapper;
+import com.blog.service.GrowthEventService;
 import com.blog.service.UserService;
 import com.blog.util.PasswordUtil;
 import com.blog.vo.LoginVO;
@@ -19,6 +20,12 @@ import org.springframework.util.StringUtils;
 
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements UserService {
+
+    private final GrowthEventService growthEventService;
+
+    public UserServiceImpl(GrowthEventService growthEventService) {
+        this.growthEventService = growthEventService;
+    }
 
     @Override
     public LoginVO loginAdmin(LoginDTO dto) {
@@ -73,6 +80,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         }
 
         StpUtil.login(user.getId());
+        growthEventService.record("user_logged_in", user.getId(), null, "{\"role\":\"" + expectedRole.name() + "\"}");
 
         return buildLoginVO(user);
     }
@@ -83,9 +91,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         if (exists != null) {
             throw new AppException(ErrorCode.USERNAME_ALREADY_EXISTS);
         }
+        if (StringUtils.hasText(dto.getEmail())) {
+            User emailExists = getOne(new LambdaQueryWrapper<User>()
+                    .eq(User::getEmail, dto.getEmail()));
+            if (emailExists != null) {
+                throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+            }
+        }
 
         User user = new User();
         user.setUsername(dto.getUsername());
+        user.setEmail(StringUtils.hasText(dto.getEmail()) ? dto.getEmail() : dto.getUsername() + "@example.com");
         user.setPassword(PasswordUtil.hash(dto.getPassword()));
         user.setNickname(StringUtils.hasText(dto.getNickname()) ? dto.getNickname() : dto.getUsername());
         user.setAvatar(dto.getAvatar());
@@ -93,6 +109,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         save(user);
 
         StpUtil.login(user.getId());
+        growthEventService.record("user_registered", user.getId(), null, "{\"role\":\"" + role.name() + "\"}");
         return buildLoginVO(user);
     }
 

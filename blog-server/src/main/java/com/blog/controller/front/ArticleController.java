@@ -2,11 +2,13 @@ package com.blog.controller.front;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.blog.common.Result;
+import com.blog.service.ArticleInteractionService;
 import com.blog.service.ArticleService;
 import com.blog.service.CategoryService;
 import com.blog.service.TagService;
 import com.blog.vo.ArchiveVO;
 import com.blog.vo.ArticleDetailVO;
+import com.blog.vo.ArticleInteractionVO;
 import com.blog.vo.ArticleListVO;
 import com.blog.vo.CategoryVO;
 import com.blog.vo.TagVO;
@@ -29,6 +31,9 @@ public class ArticleController {
     @Resource
     private TagService tagService;
 
+    @Resource
+    private ArticleInteractionService articleInteractionService;
+
     @GetMapping("/articles")
     public Result<Page<ArticleListVO>> list(
             @RequestParam(defaultValue = "1") Integer page,
@@ -43,6 +48,16 @@ public class ArticleController {
     @GetMapping("/articles/{id}")
     public Result<ArticleDetailVO> detail(@PathVariable Long id, HttpServletRequest request) {
         return Result.success(articleService.frontDetail(id, request));
+    }
+
+    @GetMapping("/articles/{id}/interaction")
+    public Result<ArticleInteractionVO> interaction(@PathVariable Long id) {
+        Long userId = null;
+        try {
+            userId = cn.dev33.satoken.stp.StpUtil.getLoginIdAsLong();
+        } catch (Exception ignored) {
+        }
+        return Result.success(articleInteractionService.getInteraction(id, userId));
     }
 
     @GetMapping("/categories")

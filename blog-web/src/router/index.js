@@ -6,6 +6,8 @@ const routes = [
     component: () => import('@/views/front/Layout.vue'),
     children: [
       { path: '', component: () => import('@/views/front/Home.vue') },
+      { path: 'login', component: () => import('@/views/front/Auth.vue'), props: { mode: 'login' } },
+      { path: 'register', component: () => import('@/views/front/Auth.vue'), props: { mode: 'register' } },
       { path: 'article/:id', component: () => import('@/views/front/ArticleDetail.vue') },
       { path: 'category/:id', component: () => import('@/views/front/Category.vue') },
       { path: 'tag/:id', component: () => import('@/views/front/Tag.vue') },
@@ -38,6 +40,13 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   if (to.path.startsWith('/admin') && to.path !== '/admin/login' && !token) {
     next('/admin/login')
+  } else if (to.path.startsWith('/admin') && token) {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || 'null')
+    if (userInfo?.role && userInfo.role !== 'ADMIN') {
+      next('/')
+    } else {
+      next()
+    }
   } else {
     next()
   }

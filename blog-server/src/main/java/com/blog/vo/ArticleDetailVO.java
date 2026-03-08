@@ -26,7 +26,13 @@ public class ArticleDetailVO {
 
     private List<TagVO> tags;
 
-    private LocalDateTime createTime;
+    private LocalDateTime createdAt;
 
-    private LocalDateTime updateTime;
+    private LocalDateTime updatedAt;
+
+    private Long commentCount;
+
+    private Long likeCount;
+
+    private Boolean liked;
 }

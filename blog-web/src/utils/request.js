@@ -22,8 +22,9 @@ request.interceptors.response.use(
     const payload = response.data
     if (payload && payload.code !== 200) {
       ElMessage.error(payload.message || 'Request failed')
-      if (payload.code === 401) {
+      if (payload.code === 401 && window.location.pathname.startsWith('/admin')) {
         localStorage.removeItem('token')
+        localStorage.removeItem('userInfo')
         window.location.href = '/admin/login'
       }
       return Promise.reject(new Error(payload.message || 'Request failed'))
@@ -33,8 +34,9 @@ request.interceptors.response.use(
   error => {
     const msg = error.response?.data?.message || 'Request failed'
     ElMessage.error(msg)
-    if (error.response?.status === 401 || error.response?.data?.code === 401) {
+    if ((error.response?.status === 401 || error.response?.data?.code === 401) && window.location.pathname.startsWith('/admin')) {
       localStorage.removeItem('token')
+      localStorage.removeItem('userInfo')
       window.location.href = '/admin/login'
     }
     return Promise.reject(error)

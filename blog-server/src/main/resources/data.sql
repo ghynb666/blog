@@ -1,7 +1,7 @@
 ﻿USE `blog`;
 
-INSERT IGNORE INTO `user` (`username`, `password`, `nickname`, `avatar`, `role`) VALUES
-('test', '0192023a7bbd73250516f069df18b500', 'test-user', NULL, 'USER');
+INSERT IGNORE INTO `user` (`username`, `email`, `password`, `nickname`, `avatar`, `role`) VALUES
+('test', 'test@example.com', '0192023a7bbd73250516f069df18b500', 'test-user', NULL, 'USER');
 
 INSERT INTO `category` (`name`, `sort`) VALUES
 ('鎶€鏈?, 1),
@@ -60,3 +60,29 @@ INSERT INTO `visit_log` (`article_id`, `ip`, `user_agent`, `created_at`) VALUES
 (6, '192.168.1.5', 'Mozilla/5.0 Chrome/120.0', DATE_SUB(NOW(), INTERVAL 4 DAY)),
 (7, '192.168.1.3', 'Mozilla/5.0 Safari/17.0', DATE_SUB(NOW(), INTERVAL 2 DAY)),
 (8, '192.168.1.1', 'Mozilla/5.0 Chrome/120.0', NOW());
+
+INSERT INTO `article_comment` (`article_id`, `user_id`, `content`, `status`, `created_at`) VALUES
+(1, 1, '欢迎来到新的增长闭环版本。', 1, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(1, 2, '这篇文章的结构很清晰，适合入门。', 1, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(2, 2, 'Vue 3 的 setup 用起来确实更顺手。', 1, NOW());
+
+INSERT INTO `article_like` (`article_id`, `user_id`, `created_at`) VALUES
+(1, 1, DATE_SUB(NOW(), INTERVAL 2 DAY)),
+(1, 2, DATE_SUB(NOW(), INTERVAL 1 DAY)),
+(2, 2, NOW());
+
+INSERT INTO `subscription` (`email`, `source_page`, `status`, `created_at`) VALUES
+('reader1@example.com', '/', 'ACTIVE', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+('reader2@example.com', '/article/1', 'ACTIVE', DATE_SUB(NOW(), INTERVAL 1 DAY));
+
+INSERT INTO `growth_event` (`event_type`, `user_id`, `article_id`, `event_data`, `created_at`) VALUES
+('user_registered', 2, NULL, '{"channel":"seed"}', DATE_SUB(NOW(), INTERVAL 6 DAY)),
+('user_logged_in', 1, NULL, '{"channel":"seed"}', DATE_SUB(NOW(), INTERVAL 2 DAY)),
+('user_logged_in', 2, NULL, '{"channel":"seed"}', DATE_SUB(NOW(), INTERVAL 1 DAY)),
+('article_commented', 1, 1, '{"source":"seed"}', DATE_SUB(NOW(), INTERVAL 2 DAY)),
+('article_commented', 2, 1, '{"source":"seed"}', DATE_SUB(NOW(), INTERVAL 1 DAY)),
+('article_liked', 1, 1, '{"source":"seed"}', DATE_SUB(NOW(), INTERVAL 2 DAY)),
+('article_liked', 2, 1, '{"source":"seed"}', DATE_SUB(NOW(), INTERVAL 1 DAY)),
+('article_liked', 2, 2, '{"source":"seed"}', NOW()),
+('subscription_created', NULL, NULL, '{"sourcePage":"/"}', DATE_SUB(NOW(), INTERVAL 3 DAY)),
+('subscription_created', NULL, NULL, '{"sourcePage":"/article/1"}', DATE_SUB(NOW(), INTERVAL 1 DAY));

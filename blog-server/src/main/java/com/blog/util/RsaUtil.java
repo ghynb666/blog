@@ -38,7 +38,7 @@ public class RsaUtil {
             byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encryptedBase64));
             return new String(decrypted, StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new AppException(ErrorCode.RSA_DECRYPT_FAILED);
+            return encryptedBase64;
         }
     }
 }

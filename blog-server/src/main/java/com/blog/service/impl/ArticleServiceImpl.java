@@ -15,11 +15,13 @@ import com.blog.mapper.ArticleTagMapper;
 import com.blog.mapper.CategoryMapper;
 import com.blog.mapper.TagMapper;
 import com.blog.service.ArticleService;
+import com.blog.service.ArticleInteractionService;
 import com.blog.vo.ArchiveVO;
 import com.blog.vo.ArticleDetailVO;
 import com.blog.vo.ArticleListVO;
 import com.blog.vo.ArticleVO;
 import com.blog.vo.TagVO;
+import cn.dev33.satoken.stp.StpUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,6 +52,9 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Resource
     private ArticleDomainEventPublisher articleDomainEventPublisher;
+
+    @Resource
+    private ArticleInteractionService articleInteractionService;
 
     @Override
     @Transactional
@@ -190,9 +195,23 @@ public class ArticleServiceImpl implements ArticleService {
             List<Tag> tags = tagMapper.selectBatchIds(tagIds);
             vo.setTags(tags.stream().map(this::toTagVO).collect(Collectors.toList()));
         }
+        vo.setCreatedAt(article.getCreatedAt());
+        vo.setUpdatedAt(article.getUpdatedAt());
+
+        Long currentUserId = null;
+        try {
+            if (StpUtil.isLogin()) {
+                currentUserId = StpUtil.getLoginIdAsLong();
+            }
+        } catch (Exception ignored) {
+        }
 
         String ip = getClientIp(request);
         articleDomainEventPublisher.publishArticleViewed(id, ip, request.getHeader("User-Agent"));
+        var interaction = articleInteractionService.getInteraction(id, currentUserId);
+        vo.setCommentCount(interaction.getCommentCount());
+        vo.setLikeCount(interaction.getLikeCount());
+        vo.setLiked(interaction.getLiked());
         return vo;
     }
 

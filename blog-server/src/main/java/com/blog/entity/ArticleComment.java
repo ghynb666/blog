@@ -9,20 +9,16 @@ import java.time.LocalDateTime;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@TableName("user")
-public class User extends BaseEntity {
+@TableName("article_comment")
+public class ArticleComment extends BaseEntity {
 
-    private String username;
+    private Long articleId;
 
-    private String email;
+    private Long userId;
 
-    private String password;
+    private String content;
 
-    private String nickname;
-
-    private String avatar;
-
-    private String role;
+    private Integer status;
 
     @TableField("created_at")
     private LocalDateTime createdAt;
