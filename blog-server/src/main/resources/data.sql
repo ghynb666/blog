@@ -1,35 +1,35 @@
-USE `blog`;
+﻿USE `blog`;
 
-INSERT IGNORE INTO `user` (`username`, `password`, `nickname`, `avatar`) VALUES
-('test', '0192023a7bbd73250516f069df18b500', '测试用户', NULL);
+INSERT IGNORE INTO `user` (`username`, `password`, `nickname`, `avatar`, `role`) VALUES
+('test', '0192023a7bbd73250516f069df18b500', 'test-user', NULL, 'USER');
 
 INSERT INTO `category` (`name`, `sort`) VALUES
-('技术', 1),
-('生活', 2),
-('随笔', 3),
-('教程', 4);
+('鎶€鏈?, 1),
+('鐢熸椿', 2),
+('闅忕瑪', 3),
+('鏁欑▼', 4);
 
 INSERT INTO `tag` (`name`) VALUES
 ('Java'),
 ('Spring Boot'),
 ('Vue'),
 ('MySQL'),
-('前端'),
-('后端'),
-('数据库'),
+('鍓嶇'),
+('鍚庣'),
+('鏁版嵁搴?),
 ('JavaScript'),
 ('CSS'),
 ('HTML');
 
 INSERT INTO `article` (`title`, `summary`, `content`, `cover`, `status`, `view_count`, `category_id`, `created_at`) VALUES
-('Spring Boot 入门教程', '本文介绍Spring Boot的基础知识和快速入门', '# Spring Boot 入门\n\n## 简介\n\nSpring Boot 是一个用于简化Spring应用开发的框架。\n\n## 特点\n\n- 约定优于配置\n- 内嵌服务器\n- 自动配置\n\n## 快速开始\n\n```java\n@SpringBootApplication\npublic class Application {\n    public static void main(String[] args) {\n        SpringApplication.run(Application.class, args);\n    }\n}\n```', NULL, 1, 100, 1, DATE_SUB(NOW(), INTERVAL 30 DAY)),
-('Vue3 组合式 API 详解', '深入理解Vue3的Composition API', '# Vue3 组合式 API\n\n## setup函数\n\n```javascript\nimport { ref, reactive } from ''vue''\n\nexport default {\n  setup() {\n    const count = ref(0)\n    return { count }\n  }\n}\n```\n\n## 响应式数据\n\n- ref: 用于基本类型\n- reactive: 用于对象类型', NULL, 1, 85, 1, DATE_SUB(NOW(), INTERVAL 25 DAY)),
-('MySQL 索引优化指南', 'MySQL数据库索引的创建与优化策略', '# MySQL 索引优化\n\n## 索引类型\n\n1. 主键索引\n2. 唯一索引\n3. 普通索引\n4. 全文索引\n\n## 优化建议\n\n- 避免在列上使用函数\n- 使用覆盖索引\n- 合理使用联合索引', NULL, 1, 120, 1, DATE_SUB(NOW(), INTERVAL 20 DAY)),
-('前端性能优化实践', '前端性能优化的多种方法和技巧', '# 前端性能优化\n\n## 加载优化\n\n- 代码分割\n- 懒加载\n- 压缩资源\n\n## 渲染优化\n\n- 虚拟列表\n- 防抖节流\n- 减少重排重绘', NULL, 1, 60, 1, DATE_SUB(NOW(), INTERVAL 15 DAY)),
-('JavaScript 异步编程', 'Promise、async/await 异步编程详解', '# JavaScript 异步编程\n\n## Promise\n\n```javascript\nconst p = new Promise((resolve, reject) => {\n  resolve(''success'')\n})\n```\n\n## async/await\n\n```javascript\nasync function fetchData() {\n  const res = await fetch(''/api/data'')\n  return res.json()\n}\n```', NULL, 1, 75, 1, DATE_SUB(NOW(), INTERVAL 10 DAY)),
-('CSS Grid 布局完全指南', 'CSS Grid布局从入门到精通', '# CSS Grid 布局\n\n## 基本概念\n\n- 容器(container)\n- 项目(item)\n- 行(row)\n- 列(column)\n\n## 常用属性\n\n```css\n.container {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);\n  gap: 20px;\n}\n```', NULL, 1, 45, 1, DATE_SUB(NOW(), INTERVAL 5 DAY)),
-('生活随笔：程序员的日常', '记录程序员日常生活中的点滴', '# 程序员的日常\n\n今天又是写代码的一天。\n\n早上起来，先喝杯咖啡，然后打开IDE开始工作。\n\n## 今日任务\n\n- 修复bug\n- 代码review\n- 写文档\n\n生活就是这样，简单而充实。', NULL, 1, 30, 2, DATE_SUB(NOW(), INTERVAL 3 DAY)),
-('我的2024年度总结', '回顾2024，展望2025', '# 2024年度总结\n\n## 工作方面\n\n今年完成了很多项目，学到了很多新技术。\n\n## 学习方面\n\n- 学习了Go语言\n- 深入了解了Kubernetes\n- 掌握了微服务架构\n\n## 2025目标\n\n继续学习，持续进步！', NULL, 1, 25, 2, NOW());
+('Spring Boot 鍏ラ棬鏁欑▼', '鏈枃浠嬬粛Spring Boot鐨勫熀纭€鐭ヨ瘑鍜屽揩閫熷叆闂?, '# Spring Boot 鍏ラ棬\n\n## 绠€浠媆n\nSpring Boot 鏄竴涓敤浜庣畝鍖朣pring搴旂敤寮€鍙戠殑妗嗘灦銆俓n\n## 鐗圭偣\n\n- 绾﹀畾浼樹簬閰嶇疆\n- 鍐呭祵鏈嶅姟鍣╘n- 鑷姩閰嶇疆\n\n## 蹇€熷紑濮媆n\n```java\n@SpringBootApplication\npublic class Application {\n    public static void main(String[] args) {\n        SpringApplication.run(Application.class, args);\n    }\n}\n```', NULL, 1, 100, 1, DATE_SUB(NOW(), INTERVAL 30 DAY)),
+('Vue3 缁勫悎寮?API 璇﹁В', '娣卞叆鐞嗚ВVue3鐨凜omposition API', '# Vue3 缁勫悎寮?API\n\n## setup鍑芥暟\n\n```javascript\nimport { ref, reactive } from ''vue''\n\nexport default {\n  setup() {\n    const count = ref(0)\n    return { count }\n  }\n}\n```\n\n## 鍝嶅簲寮忔暟鎹甛n\n- ref: 鐢ㄤ簬鍩烘湰绫诲瀷\n- reactive: 鐢ㄤ簬瀵硅薄绫诲瀷', NULL, 1, 85, 1, DATE_SUB(NOW(), INTERVAL 25 DAY)),
+('MySQL 绱㈠紩浼樺寲鎸囧崡', 'MySQL鏁版嵁搴撶储寮曠殑鍒涘缓涓庝紭鍖栫瓥鐣?, '# MySQL 绱㈠紩浼樺寲\n\n## 绱㈠紩绫诲瀷\n\n1. 涓婚敭绱㈠紩\n2. 鍞竴绱㈠紩\n3. 鏅€氱储寮昞n4. 鍏ㄦ枃绱㈠紩\n\n## 浼樺寲寤鸿\n\n- 閬垮厤鍦ㄥ垪涓婁娇鐢ㄥ嚱鏁癨n- 浣跨敤瑕嗙洊绱㈠紩\n- 鍚堢悊浣跨敤鑱斿悎绱㈠紩', NULL, 1, 120, 1, DATE_SUB(NOW(), INTERVAL 20 DAY)),
+('鍓嶇鎬ц兘浼樺寲瀹炶返', '鍓嶇鎬ц兘浼樺寲鐨勫绉嶆柟娉曞拰鎶€宸?, '# 鍓嶇鎬ц兘浼樺寲\n\n## 鍔犺浇浼樺寲\n\n- 浠ｇ爜鍒嗗壊\n- 鎳掑姞杞絓n- 鍘嬬缉璧勬簮\n\n## 娓叉煋浼樺寲\n\n- 铏氭嫙鍒楄〃\n- 闃叉姈鑺傛祦\n- 鍑忓皯閲嶆帓閲嶇粯', NULL, 1, 60, 1, DATE_SUB(NOW(), INTERVAL 15 DAY)),
+('JavaScript 寮傛缂栫▼', 'Promise銆乤sync/await 寮傛缂栫▼璇﹁В', '# JavaScript 寮傛缂栫▼\n\n## Promise\n\n```javascript\nconst p = new Promise((resolve, reject) => {\n  resolve(''success'')\n})\n```\n\n## async/await\n\n```javascript\nasync function fetchData() {\n  const res = await fetch(''/api/data'')\n  return res.json()\n}\n```', NULL, 1, 75, 1, DATE_SUB(NOW(), INTERVAL 10 DAY)),
+('CSS Grid 甯冨眬瀹屽叏鎸囧崡', 'CSS Grid甯冨眬浠庡叆闂ㄥ埌绮鹃€?, '# CSS Grid 甯冨眬\n\n## 鍩烘湰姒傚康\n\n- 瀹瑰櫒(container)\n- 椤圭洰(item)\n- 琛?row)\n- 鍒?column)\n\n## 甯哥敤灞炴€n\n```css\n.container {\n  display: grid;\n  grid-template-columns: repeat(3, 1fr);\n  gap: 20px;\n}\n```', NULL, 1, 45, 1, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+('鐢熸椿闅忕瑪锛氱▼搴忓憳鐨勬棩甯?, '璁板綍绋嬪簭鍛樻棩甯哥敓娲讳腑鐨勭偣婊?, '# 绋嬪簭鍛樼殑鏃ュ父\n\n浠婂ぉ鍙堟槸鍐欎唬鐮佺殑涓€澶┿€俓n\n鏃╀笂璧锋潵锛屽厛鍠濇澂鍜栧暋锛岀劧鍚庢墦寮€IDE寮€濮嬪伐浣溿€俓n\n## 浠婃棩浠诲姟\n\n- 淇bug\n- 浠ｇ爜review\n- 鍐欐枃妗n\n鐢熸椿灏辨槸杩欐牱锛岀畝鍗曡€屽厖瀹炪€?, NULL, 1, 30, 2, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+('鎴戠殑2024骞村害鎬荤粨', '鍥為【2024锛屽睍鏈?025', '# 2024骞村害鎬荤粨\n\n## 宸ヤ綔鏂归潰\n\n浠婂勾瀹屾垚浜嗗緢澶氶」鐩紝瀛﹀埌浜嗗緢澶氭柊鎶€鏈€俓n\n## 瀛︿範鏂归潰\n\n- 瀛︿範浜咷o璇█\n- 娣卞叆浜嗚В浜咾ubernetes\n- 鎺屾彙浜嗗井鏈嶅姟鏋舵瀯\n\n## 2025鐩爣\n\n缁х画瀛︿範锛屾寔缁繘姝ワ紒', NULL, 1, 25, 2, NOW());
 
 INSERT INTO `article_tag` (`article_id`, `tag_id`) VALUES
 (1, 1),

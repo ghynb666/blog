@@ -16,6 +16,7 @@ public class LoginVO {
         private String username;
         private String nickname;
         private String avatar;
+        private String role;
 
         public static UserInfo fromUser(User user) {
             UserInfo info = new UserInfo();
@@ -23,6 +24,7 @@ public class LoginVO {
             info.setUsername(user.getUsername());
             info.setNickname(user.getNickname());
             info.setAvatar(user.getAvatar());
+            info.setRole(user.getRole());
             return info;
         }
     }

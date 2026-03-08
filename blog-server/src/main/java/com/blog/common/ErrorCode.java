@@ -15,7 +15,9 @@ public enum ErrorCode {
     USER_NOT_FOUND(2004, "User not found"),
     INVALID_CREDENTIALS(2005, "Invalid username or password"),
     RSA_DECRYPT_FAILED(2006, "RSA decrypt failed"),
-    STORAGE_ERROR(2007, "Storage operation failed");
+    STORAGE_ERROR(2007, "Storage operation failed"),
+    USERNAME_ALREADY_EXISTS(2008, "Username already exists"),
+    ROLE_FORBIDDEN(2009, "Role forbidden");
 
     private final int code;
     private final String message;

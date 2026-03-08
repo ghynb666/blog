@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS `blog` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+﻿CREATE DATABASE IF NOT EXISTS `blog` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE `blog`;
 
@@ -11,9 +11,11 @@ CREATE TABLE `user` (
   `password` VARCHAR(100) NOT NULL,
   `nickname` VARCHAR(50) DEFAULT NULL,
   `avatar` VARCHAR(255) DEFAULT NULL,
+  `role` VARCHAR(20) NOT NULL DEFAULT 'USER',
   `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_username` (`username`)
+  UNIQUE KEY `uk_username` (`username`),
+  KEY `idx_role` (`role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE `category` (
@@ -74,6 +76,11 @@ CREATE TABLE `visit_log` (
   CONSTRAINT `fk_visit_log_article` FOREIGN KEY (`article_id`) REFERENCES `article` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT INTO `user` (`username`, `password`, `nickname`) VALUES ('admin', '0192023a7bbd73250516f069df18b500', '管理员');
+INSERT INTO `user` (`username`, `password`, `nickname`, `role`) VALUES ('admin', '0192023a7bbd73250516f069df18b500', 'admin', 'ADMIN');
+
+ALTER TABLE `user` ADD COLUMN IF NOT EXISTS `role` VARCHAR(20) NOT NULL DEFAULT 'USER' AFTER `avatar`;
+ALTER TABLE `user` ADD INDEX IF NOT EXISTS `idx_role` (`role`);
+UPDATE `user` SET `role`='ADMIN' WHERE `username`='admin';
+UPDATE `user` SET `role`='USER' WHERE `role` IS NULL OR `role`='';
 
 SET FOREIGN_KEY_CHECKS = 1;

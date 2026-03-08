@@ -3,6 +3,7 @@ package com.blog.controller.admin;
 import cn.dev33.satoken.stp.StpUtil;
 import com.blog.common.Result;
 import com.blog.dto.LoginDTO;
+import com.blog.dto.RegisterDTO;
 import com.blog.entity.User;
 import com.blog.service.UserService;
 import com.blog.util.RsaUtil;
@@ -10,6 +11,7 @@ import com.blog.vo.LoginVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.Map;
 
 @RestController
@@ -28,10 +30,17 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Result<LoginVO> login(@RequestBody LoginDTO dto) {
+    public Result<LoginVO> loginAdmin(@RequestBody LoginDTO dto) {
         String password = rsaUtil.decrypt(dto.getPassword());
         dto.setPassword(password);
-        return Result.success(userService.login(dto));
+        return Result.success(userService.loginAdmin(dto));
+    }
+
+    @PostMapping("/register")
+    public Result<LoginVO> registerAdmin(@Valid @RequestBody RegisterDTO dto) {
+        String password = rsaUtil.decrypt(dto.getPassword());
+        dto.setPassword(password);
+        return Result.success(userService.registerAdmin(dto));
     }
 
     @PostMapping("/logout")

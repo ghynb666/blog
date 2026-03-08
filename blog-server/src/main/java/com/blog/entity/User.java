@@ -20,6 +20,8 @@ public class User extends BaseEntity {
 
     private String avatar;
 
+    private String role;
+
     @TableField("created_at")
     private LocalDateTime createdAt;
 }
