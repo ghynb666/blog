@@ -6,12 +6,24 @@ export const useUserStore = defineStore('user', () => {
   const token = ref(localStorage.getItem('token') || '')
   const userInfo = ref(JSON.parse(localStorage.getItem('userInfo') || 'null'))
 
-  async function login(data) {
-    const res = await authApi.login(data)
+  const saveSession = res => {
     token.value = res.data?.token
     userInfo.value = res.data?.userInfo
     localStorage.setItem('token', res.data?.token || '')
     localStorage.setItem('userInfo', JSON.stringify(res.data?.userInfo))
+  }
+
+  async function login(data) {
+    const res = await authApi.loginAdmin(data)
+    saveSession(res)
+    return res
+  }
+
+  async function register(data, isAdmin = false) {
+    const res = isAdmin
+      ? await authApi.registerAdmin(data)
+      : await authApi.registerUser(data)
+    saveSession(res)
     return res
   }
 
@@ -29,5 +41,5 @@ export const useUserStore = defineStore('user', () => {
     localStorage.removeItem('userInfo')
   }
 
-  return { token, userInfo, login, getInfo, logout }
+  return { token, userInfo, login, register, getInfo, logout }
 })

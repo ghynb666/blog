@@ -23,8 +23,9 @@ export const tagApi = {
 }
 
 export const userApi = {
-  login: data => request.post('/users/login', data),
-  register: data => request.post('/users/register', data),
-  info: () => request.get('/users/info'),
-  update: data => request.put('/users/info', data)
+  loginAdmin: data => request.post('/admin/login', data),
+  loginUser: data => request.post('/login', data),
+  registerAdmin: data => request.post('/admin/register', data),
+  registerUser: data => request.post('/register', data),
+  info: () => request.get('/admin/info')
 }
