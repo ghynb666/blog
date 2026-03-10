@@ -8,7 +8,17 @@ const routes = [
       { path: '', component: () => import('@/views/front/Home.vue') },
       { path: 'login', component: () => import('@/views/front/Auth.vue'), props: { mode: 'login' } },
       { path: 'register', component: () => import('@/views/front/Auth.vue'), props: { mode: 'register' } },
-      { path: 'article/:id', component: () => import('@/views/front/ArticleDetail.vue') },
+      {
+        path: 'article/:id',
+        component: () => import('@/views/front/ArticleDetail.vue'),
+        meta: {
+          frontLayout: {
+            variant: 'detail',
+            hideHero: true,
+            hideSidebar: true
+          }
+        }
+      },
       { path: 'category/:id', component: () => import('@/views/front/Category.vue') },
       { path: 'tag/:id', component: () => import('@/views/front/Tag.vue') },
       { path: 'tags/:ids', component: () => import('@/views/front/Tags.vue') },

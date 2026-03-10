@@ -29,7 +29,7 @@
     </header>
 
     <main class="main">
-      <div class="hero">
+      <div v-if="showHero" class="hero">
         <div class="hero-copy">
           <p class="hero-kicker">P0 Growth Loop</p>
           <h1>Publish, interact, subscribe, measure.</h1>
@@ -45,9 +45,9 @@
         </form>
       </div>
 
-      <div class="main-inner">
-        <div class="content"><router-view /></div>
-        <aside class="sidebar">
+      <div class="main-inner" :class="{ 'detail-main': isDetailLayout }">
+        <div class="content" :class="{ 'detail-content': isDetailLayout }"><router-view /></div>
+        <aside v-if="showSidebar" class="sidebar">
           <div class="widget about-widget">
             <div class="avatar"></div>
             <h3 class="widget-title">About This Blog</h3>
@@ -94,6 +94,10 @@ const tags = ref([])
 const selectedTagIds = ref([])
 const heroEmail = ref('')
 const isDark = ref(false)
+const frontLayout = computed(() => route.meta?.frontLayout || {})
+const isDetailLayout = computed(() => frontLayout.value.variant === 'detail')
+const showHero = computed(() => !frontLayout.value.hideHero)
+const showSidebar = computed(() => !frontLayout.value.hideSidebar)
 
 const currentCategoryId = computed(() => {
   const match = route.path.match(/^\/category\/(\d+)/)
@@ -350,7 +354,12 @@ body {
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 32px;
 }
+.main-inner.detail-main {
+  max-width: 1280px;
+  grid-template-columns: minmax(0, 1fr);
+}
 .content { min-width: 0; }
+.content.detail-content { width: 100%; }
 .sidebar { display: flex; flex-direction: column; gap: 20px; }
 .widget { padding: 24px; }
 .about-widget { text-align: center; }

@@ -1,87 +1,155 @@
 <template>
   <div class="article-detail" v-if="article">
-    <article class="article">
-      <header class="article-header">
-        <div class="header-meta">
-          <span v-if="article.categoryName" class="category">{{ article.categoryName }}</span>
-          <time class="date">{{ formatDate(article.createdAt) }}</time>
-          <span class="metric">{{ interaction.likeCount }} likes</span>
-          <span class="metric">{{ interaction.commentCount }} comments</span>
-        </div>
-        <h1 class="title">{{ article.title }}</h1>
-        <p class="summary" v-if="article.summary">{{ article.summary }}</p>
-      </header>
+    <div class="article-main">
+      <article class="article-shell">
+        <header class="article-hero">
+          <p class="hero-kicker">Article</p>
+          <div class="hero-meta">
+            <span v-if="article.categoryName" class="meta-pill">{{ article.categoryName }}</span>
+            <span class="meta-text">Published {{ formatDate(article.createdAt) }}</span>
+            <span class="meta-text">{{ readingMinutes }} min read</span>
+          </div>
 
-      <div class="interaction-bar">
-        <button class="interaction-btn" :class="{ active: interaction.liked }" @click="handleToggleLike">
-          <span>{{ interaction.liked ? 'Liked' : 'Like' }}</span>
-          <strong>{{ interaction.likeCount }}</strong>
-        </button>
-        <button class="interaction-btn" @click="scrollToComments">
-          <span>Comment</span>
-          <strong>{{ interaction.commentCount }}</strong>
-        </button>
-      </div>
+          <h1 class="hero-title">{{ article.title }}</h1>
+          <p v-if="article.summary" class="hero-summary">{{ article.summary }}</p>
 
-      <div class="content" v-html="htmlContent"></div>
+          <div class="hero-stats">
+            <div class="stat-card">
+              <span class="stat-label">Likes</span>
+              <strong>{{ interaction.likeCount }}</strong>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Comments</span>
+              <strong>{{ totalCommentCount }}</strong>
+            </div>
+            <div class="stat-card">
+              <span class="stat-label">Views</span>
+              <strong>{{ article.viewCount || 0 }}</strong>
+            </div>
+          </div>
+        </header>
 
-      <footer class="article-footer">
-        <div class="tags" v-if="article.tags?.length">
-          <span v-for="tag in article.tags" :key="tag.id" class="tag"># {{ tag.name }}</span>
-        </div>
-      </footer>
-    </article>
-
-    <section class="subscribe-card">
-      <div>
-        <p class="eyebrow">Subscribe</p>
-        <h2>Get the next post in your inbox</h2>
-        <p class="subscribe-copy">P0 版本先提供留资订阅，提交后会记录来源页并进入后台统计。</p>
-      </div>
-      <form class="subscribe-form" @submit.prevent="handleSubscribe">
-        <input v-model.trim="subscription.email" type="email" placeholder="you@example.com" />
-        <button type="submit" :disabled="submitting.subscribe">{{ submitting.subscribe ? 'Submitting...' : 'Subscribe' }}</button>
-      </form>
-    </section>
-
-    <section id="comments" class="comments-section">
-      <div class="section-header">
-        <div>
-          <p class="eyebrow">Comments</p>
-          <h2>{{ totalCommentCount }} comments · {{ comments.length }} conversations</h2>
-        </div>
-        <router-link v-if="!userStore.token" to="/login" class="login-link">Login to join</router-link>
-      </div>
-
-      <form class="comment-form" @submit.prevent="handleComment">
-        <div v-if="replyingTo" class="reply-banner">
-          <span>Replying to {{ displayName(replyingTo.user) }}</span>
-          <button type="button" class="reply-cancel" @click="cancelReply">Cancel</button>
-        </div>
-        <textarea
-          ref="commentInput"
-          v-model.trim="commentForm.content"
-          :placeholder="commentPlaceholder"
-          :disabled="!userStore.token || submitting.comment"
-          maxlength="500"
-        />
-        <div class="comment-actions">
-          <span>{{ commentForm.content.length }}/500</span>
-          <button type="submit" :disabled="!userStore.token || !commentForm.content || submitting.comment">
-            {{ submitting.comment ? 'Posting...' : 'Post Comment' }}
+        <div class="article-toolbar">
+          <button class="toolbar-btn primary" :class="{ active: interaction.liked }" @click="handleToggleLike">
+            <span>{{ interaction.liked ? 'Liked' : 'Like this post' }}</span>
+            <strong>{{ interaction.likeCount }}</strong>
+          </button>
+          <button class="toolbar-btn" @click="scrollToComments">
+            <span>Jump to comments</span>
+            <strong>{{ totalCommentCount }}</strong>
           </button>
         </div>
-      </form>
 
-      <div class="comment-list">
-        <CommentThread v-for="comment in comments" :key="comment.id" :comment="comment" @reply="startReply" />
-        <div v-if="comments.length === 0" class="empty-comments">No comments yet. Be the first one.</div>
-      </div>
-    </section>
+        <div class="article-content" v-html="htmlContent"></div>
 
-    <div class="toc-wrapper" v-if="headings.length">
-      <Toc :headings="headings" />
+        <footer class="article-footer">
+          <div class="footer-group">
+            <span class="footer-label">Filed under</span>
+            <div class="tags" v-if="article.tags?.length">
+              <span v-for="tag in article.tags" :key="tag.id" class="tag"># {{ tag.name }}</span>
+            </div>
+            <span v-else class="footer-note">No tags attached yet.</span>
+          </div>
+        </footer>
+      </article>
+
+      <section v-if="hasToc" class="mobile-outline">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Outline</p>
+            <h2>In this post</h2>
+          </div>
+        </div>
+        <Toc :headings="headings" />
+      </section>
+
+      <section class="subscribe-card">
+        <div class="section-head">
+          <div>
+            <p class="section-kicker">Subscribe</p>
+            <h2>Get the next post in your inbox</h2>
+          </div>
+          <p class="section-copy">Save future articles to your inbox and keep the reading loop going.</p>
+        </div>
+        <form class="subscribe-form" @submit.prevent="handleSubscribe">
+          <input v-model.trim="subscription.email" type="email" placeholder="you@example.com" />
+          <button type="submit" :disabled="submitting.subscribe">{{ submitting.subscribe ? 'Submitting...' : 'Subscribe' }}</button>
+        </form>
+      </section>
+
+      <section id="comments" class="comments-section">
+        <div class="section-head comments-head">
+          <div>
+            <p class="section-kicker">Comments</p>
+            <h2>{{ totalCommentCount }} comments · {{ comments.length }} conversations</h2>
+          </div>
+          <router-link v-if="!userStore.token" to="/login" class="login-link">Login to join</router-link>
+        </div>
+
+        <form class="comment-form" @submit.prevent="handleComment">
+          <div v-if="replyingTo" class="reply-banner">
+            <span>Replying to {{ displayName(replyingTo.user) }}</span>
+            <button type="button" class="reply-cancel" @click="cancelReply">Cancel</button>
+          </div>
+          <textarea
+            ref="commentInput"
+            v-model.trim="commentForm.content"
+            :placeholder="commentPlaceholder"
+            :disabled="!userStore.token || submitting.comment"
+            maxlength="500"
+          />
+          <div class="comment-actions">
+            <span>{{ commentForm.content.length }}/500</span>
+            <button type="submit" :disabled="!userStore.token || !commentForm.content || submitting.comment">
+              {{ submitting.comment ? 'Posting...' : 'Post Comment' }}
+            </button>
+          </div>
+        </form>
+
+        <div class="comment-list">
+          <CommentThread v-for="comment in comments" :key="comment.id" :comment="comment" @reply="startReply" />
+          <div v-if="comments.length === 0" class="empty-comments">No comments yet. Be the first one.</div>
+        </div>
+      </section>
     </div>
+
+    <aside class="article-rail">
+      <section class="rail-card article-info-card">
+        <p class="section-kicker">Article Info</p>
+        <h2>Reading details</h2>
+        <dl class="article-facts">
+          <div>
+            <dt>Published</dt>
+            <dd>{{ formatDate(article.createdAt) }}</dd>
+          </div>
+          <div v-if="article.updatedAt">
+            <dt>Updated</dt>
+            <dd>{{ formatDate(article.updatedAt) }}</dd>
+          </div>
+          <div>
+            <dt>Reading time</dt>
+            <dd>{{ readingMinutes }} min</dd>
+          </div>
+        </dl>
+
+        <div class="rail-tags" v-if="article.tags?.length">
+          <span v-for="tag in article.tags" :key="tag.id" class="tag muted"># {{ tag.name }}</span>
+        </div>
+
+        <div class="rail-actions">
+          <router-link to="/archives" class="text-link">Back to archives</router-link>
+          <button class="text-link button-link" type="button" @click="scrollToComments">Open discussion</button>
+        </div>
+      </section>
+
+      <section v-if="hasToc" class="rail-card toc-card">
+        <div class="toc-head">
+          <p class="section-kicker">Outline</p>
+          <h2>On this page</h2>
+        </div>
+        <Toc :headings="headings" />
+      </section>
+    </aside>
   </div>
 </template>
 
@@ -120,8 +188,24 @@ const htmlContent = computed(() => {
 })
 
 const replyingTo = computed(() => findCommentById(comments.value, commentForm.parentId))
-
 const totalCommentCount = computed(() => countComments(comments.value))
+const hasToc = computed(() => headings.value.length > 1)
+const readingMinutes = computed(() => {
+  const content = article.value?.content || ''
+  if (!content) return 1
+
+  const plainText = content
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(/\[[^\]]*]\([^)]*\)/g, ' ')
+    .replace(/[#>*_~-]/g, ' ')
+
+  const latinWords = plainText.match(/[A-Za-z0-9]+/g)?.length || 0
+  const cjkChars = plainText.match(/[\u4e00-\u9fff]/g)?.length || 0
+  const units = latinWords + Math.ceil(cjkChars / 2)
+  return Math.max(1, Math.ceil(units / 220))
+})
 
 const commentPlaceholder = computed(() => {
   if (!userStore.token) return 'Login first to comment...'
@@ -163,6 +247,7 @@ const loadDetail = async () => {
   article.value = articleRes.data
   comments.value = commentsRes.data || []
   Object.assign(interaction, interactionRes.data || {})
+  window.scrollTo({ top: 0, behavior: 'auto' })
 }
 
 const loadComments = async () => {
@@ -237,7 +322,7 @@ const handleSubscribe = async () => {
 }
 
 const extractHeadings = () => {
-  const els = document.querySelectorAll('.content h1, .content h2, .content h3, .content h4')
+  const els = document.querySelectorAll('.article-content h1, .article-content h2, .article-content h3, .article-content h4')
   headings.value = Array.from(els).map((el, index) => {
     const id = `heading-${index}`
     el.id = id
@@ -296,120 +381,355 @@ onMounted(loadDetail)
 </script>
 
 <style scoped>
-.article-detail { display: grid; grid-template-columns: minmax(0, 1fr) 260px; gap: 32px; }
-.article, .subscribe-card, .comments-section {
+.article-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 820px) 280px;
+  justify-content: center;
+  gap: 32px;
+  width: 100%;
+}
+
+.article-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.article-shell,
+.subscribe-card,
+.comments-section,
+.rail-card,
+.mobile-outline {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 20px;
-  box-shadow: 0 10px 30px var(--shadow);
+  border-radius: 26px;
+  box-shadow: 0 18px 46px var(--shadow);
 }
-.article-header { padding: 36px 40px 28px; border-bottom: 1px solid var(--border); }
-.header-meta { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 12px; }
-.category, .metric {
-  padding: 6px 12px;
+
+.article-hero {
+  padding: 44px 48px 30px;
+  background:
+    linear-gradient(180deg, rgba(196, 93, 62, 0.1), rgba(196, 93, 62, 0.02) 42%, transparent 100%),
+    var(--card);
+  border-bottom: 1px solid rgba(196, 93, 62, 0.12);
+}
+
+.hero-kicker,
+.section-kicker {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+}
+
+.meta-pill {
+  padding: 7px 14px;
   border-radius: 999px;
   background: var(--accent-light);
   color: var(--accent);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
 }
-.date { color: var(--muted); font-size: 14px; }
-.title { margin: 0; font-family: var(--font-display); font-size: 40px; line-height: 1.2; }
-.summary { margin: 14px 0 0; color: var(--muted); font-size: 16px; }
-.interaction-bar {
-  display: flex;
-  gap: 12px;
-  padding: 20px 40px;
-  border-bottom: 1px solid var(--border);
+
+.meta-text {
+  color: var(--muted);
+  font-size: 14px;
 }
-.interaction-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid var(--border);
-  background: transparent;
-  color: var(--fg);
-  border-radius: 999px;
-  padding: 10px 16px;
-  cursor: pointer;
+
+.hero-title {
+  margin: 18px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 4vw, 4.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  max-width: 12ch;
 }
-.interaction-btn.active {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
+
+.hero-summary {
+  max-width: 62ch;
+  margin: 18px 0 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.8;
 }
-.content { padding: 36px 40px; line-height: 1.9; font-size: 16px; }
-.content :deep(h1), .content :deep(h2), .content :deep(h3), .content :deep(h4) {
-  margin: 40px 0 16px;
+
+.hero-stats {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.56);
+  border: 1px solid rgba(196, 93, 62, 0.12);
+}
+
+.dark .stat-card {
+  background: rgba(20, 18, 17, 0.4);
+}
+
+.stat-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 28px;
+  line-height: 1;
   font-family: var(--font-display);
 }
-.content :deep(h2) { border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-.content :deep(pre) {
-  background: var(--bg);
+
+.stat-label {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.article-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px 48px 0;
+}
+
+.toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 190px;
+  padding: 13px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--fg);
+  cursor: pointer;
+  transition: transform 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+}
+
+.toolbar-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(196, 93, 62, 0.38);
+}
+
+.toolbar-btn.primary.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.article-content {
+  padding: 26px 48px 52px;
+  font-size: 18px;
+  line-height: 1.95;
+}
+
+.article-content :deep(h1),
+.article-content :deep(h2),
+.article-content :deep(h3),
+.article-content :deep(h4) {
+  margin: 52px 0 18px;
+  font-family: var(--font-display);
+  line-height: 1.15;
+  scroll-margin-top: 110px;
+}
+
+.article-content :deep(h1) {
+  font-size: 2.4rem;
+}
+
+.article-content :deep(h2) {
+  font-size: 2rem;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.article-content :deep(h3) {
+  font-size: 1.55rem;
+}
+
+.article-content :deep(h4) {
+  font-size: 1.2rem;
+}
+
+.article-content :deep(p),
+.article-content :deep(ul),
+.article-content :deep(ol),
+.article-content :deep(blockquote) {
+  margin: 0 0 1.2em;
+}
+
+.article-content :deep(ul),
+.article-content :deep(ol) {
+  padding-left: 1.4em;
+}
+
+.article-content :deep(blockquote) {
   padding: 18px 20px;
-  border-radius: 14px;
+  border-left: 3px solid var(--accent);
+  background: rgba(196, 93, 62, 0.07);
+  border-radius: 0 18px 18px 0;
+  color: var(--muted);
+}
+
+.article-content :deep(pre) {
+  margin: 28px 0;
+  padding: 20px 22px;
+  border-radius: 20px;
   overflow-x: auto;
   border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 78%, white 22%);
 }
-.content :deep(code) { font-family: 'JetBrains Mono', monospace; }
-.content :deep(img) { max-width: 100%; border-radius: 12px; }
-.article-footer { padding: 24px 40px 36px; border-top: 1px solid var(--border); }
-.tags { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.dark .article-content :deep(pre) {
+  background: rgba(18, 17, 16, 0.92);
+}
+
+.article-content :deep(code) {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.article-content :deep(img) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 24px 0;
+  border-radius: 18px;
+}
+
+.article-footer {
+  padding: 0 48px 38px;
+}
+
+.footer-group {
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+.footer-label {
+  display: block;
+  margin-bottom: 14px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.footer-note,
+.section-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.tags,
+.rail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .tag {
+  display: inline-flex;
+  align-items: center;
   padding: 8px 12px;
   border-radius: 999px;
   background: var(--accent-light);
   color: var(--accent);
   font-size: 13px;
 }
-.subscribe-card, .comments-section {
-  grid-column: 1 / 2;
-  padding: 28px 32px;
+
+.tag.muted {
+  background: rgba(196, 93, 62, 0.08);
 }
-.eyebrow {
-  margin: 0 0 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--accent);
-  font-size: 12px;
-  font-weight: 700;
-}
-.subscribe-card h2, .comments-section h2 {
-  margin: 0 0 8px;
-  font-family: var(--font-display);
-  font-size: 28px;
-}
-.subscribe-copy { margin: 0; color: var(--muted); }
-.subscribe-form {
-  margin-top: 18px;
-  display: flex;
-  gap: 12px;
-}
-.subscribe-form input, .comment-form textarea {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--bg);
-  color: var(--fg);
-}
-.subscribe-form input { padding: 14px 16px; }
-.subscribe-form button, .comment-actions button {
-  border: none;
-  border-radius: 14px;
-  background: var(--accent);
-  color: #fff;
-  padding: 0 18px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.section-header {
+
+.section-head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  gap: 18px;
+  align-items: end;
+}
+
+.section-head h2,
+.toc-head h2,
+.article-info-card h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1.08;
+}
+
+.subscribe-card,
+.comments-section,
+.mobile-outline {
+  padding: 30px 32px;
+}
+
+.subscribe-form {
+  margin-top: 22px;
+  display: flex;
   gap: 12px;
 }
-.login-link { color: var(--accent); text-decoration: none; font-weight: 600; }
-.comment-form { margin-top: 20px; }
+
+.subscribe-form input,
+.comment-form textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--bg) 80%, white 20%);
+  color: var(--fg);
+}
+
+.subscribe-form input {
+  padding: 15px 16px;
+}
+
+.subscribe-form button,
+.comment-actions button {
+  border: none;
+  border-radius: 16px;
+  background: var(--accent);
+  color: #fff;
+  padding: 0 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.comments-head {
+  align-items: center;
+}
+
+.login-link,
+.text-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.button-link {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.comment-form {
+  margin-top: 22px;
+}
+
 .reply-banner {
   display: flex;
   justify-content: space-between;
@@ -424,6 +744,7 @@ onMounted(loadDetail)
   font-size: 13px;
   font-weight: 600;
 }
+
 .reply-cancel {
   padding: 0;
   border: none;
@@ -432,11 +753,13 @@ onMounted(loadDetail)
   cursor: pointer;
   font-weight: 700;
 }
+
 .comment-form textarea {
-  min-height: 120px;
+  min-height: 140px;
   resize: vertical;
   padding: 16px;
 }
+
 .comment-actions {
   margin-top: 12px;
   display: flex;
@@ -445,26 +768,161 @@ onMounted(loadDetail)
   color: var(--muted);
   font-size: 13px;
 }
-.comment-list { margin-top: 20px; display: flex; flex-direction: column; gap: 14px; }
+
+.comment-list {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
 .empty-comments {
-  padding: 24px;
+  padding: 28px;
   border: 1px dashed var(--border);
-  border-radius: 16px;
+  border-radius: 18px;
   color: var(--muted);
   text-align: center;
 }
-.toc-wrapper {
+
+.article-rail {
   position: sticky;
   top: 96px;
   align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
+
+.rail-card {
+  padding: 22px;
+}
+
+.article-info-card h2,
+.toc-head h2 {
+  font-size: 24px;
+}
+
+.article-facts {
+  margin: 20px 0 0;
+}
+
+.article-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.article-facts div:last-child {
+  border-bottom: none;
+}
+
+.article-facts dt,
+.article-facts dd {
+  margin: 0;
+}
+
+.article-facts dt {
+  color: var(--muted);
+}
+
+.article-facts dd {
+  font-weight: 700;
+}
+
+.rail-actions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rail-tags {
+  margin-top: 18px;
+}
+
+.toc-head {
+  margin-bottom: 16px;
+}
+
+.mobile-outline {
+  display: none;
+}
+
 @media (max-width: 980px) {
-  .article-detail { grid-template-columns: 1fr; }
-  .toc-wrapper { display: none; }
+  .article-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .article-rail {
+    position: static;
+    display: none;
+  }
+
+  .mobile-outline {
+    display: block;
+  }
 }
+
 @media (max-width: 640px) {
-  .article-header, .content, .article-footer, .interaction-bar, .subscribe-card, .comments-section { padding-left: 20px; padding-right: 20px; }
-  .title { font-size: 30px; }
-  .subscribe-form { flex-direction: column; }
+  .article-main {
+    gap: 22px;
+  }
+
+  .article-hero {
+    padding: 32px 22px 24px;
+  }
+
+  .hero-title {
+    font-size: 2.4rem;
+    max-width: none;
+  }
+
+  .hero-summary,
+  .article-content {
+    font-size: 16px;
+  }
+
+  .hero-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .article-toolbar,
+  .article-content,
+  .article-footer,
+  .subscribe-card,
+  .comments-section,
+  .mobile-outline {
+    padding-left: 22px;
+    padding-right: 22px;
+  }
+
+  .article-content {
+    padding-top: 24px;
+    padding-bottom: 34px;
+  }
+
+  .article-footer {
+    padding-bottom: 28px;
+  }
+
+  .toolbar-btn,
+  .subscribe-form button {
+    width: 100%;
+  }
+
+  .subscribe-form,
+  .section-head,
+  .comments-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .comment-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
 }
 </style>
