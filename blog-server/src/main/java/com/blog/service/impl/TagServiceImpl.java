@@ -29,6 +29,8 @@ public class TagServiceImpl implements TagService {
                     "T(com.blog.cache.CacheKeys).tagList()"
             },
             patterns = {
+                    "T(com.blog.cache.CacheKeys).adminArticleListPattern()",
+                    "T(com.blog.cache.CacheKeys).adminArticleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).articleListPattern()",
                     "T(com.blog.cache.CacheKeys).articleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
@@ -46,6 +48,8 @@ public class TagServiceImpl implements TagService {
                     "T(com.blog.cache.CacheKeys).tagList()"
             },
             patterns = {
+                    "T(com.blog.cache.CacheKeys).adminArticleListPattern()",
+                    "T(com.blog.cache.CacheKeys).adminArticleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).articleListPattern()",
                     "T(com.blog.cache.CacheKeys).articleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
@@ -66,6 +70,8 @@ public class TagServiceImpl implements TagService {
                     "T(com.blog.cache.CacheKeys).tagList()"
             },
             patterns = {
+                    "T(com.blog.cache.CacheKeys).adminArticleListPattern()",
+                    "T(com.blog.cache.CacheKeys).adminArticleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).articleListPattern()",
                     "T(com.blog.cache.CacheKeys).articleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).feedSitemapPattern()"

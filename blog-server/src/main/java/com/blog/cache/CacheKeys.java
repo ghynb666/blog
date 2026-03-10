@@ -20,6 +20,25 @@ public final class CacheKeys {
                 + ":tags=" + normalizeTagIds(tagIds);
     }
 
+    public static String adminArticleList(Integer page, Integer size, Integer status, Long categoryId) {
+        return "admin:article:list:p=" + safe(page)
+                + ":s=" + safe(size)
+                + ":status=" + safe(status)
+                + ":cid=" + safe(categoryId);
+    }
+
+    public static String adminArticleListPattern() {
+        return "admin:article:list:*";
+    }
+
+    public static String adminArticleDetail(Long id) {
+        return "admin:article:detail:" + id;
+    }
+
+    public static String adminArticleDetailPattern() {
+        return "admin:article:detail:*";
+    }
+
     public static long articleListTtl(String orderBy) {
         return "viewCount".equals(orderBy) ? 60L : 300L;
     }

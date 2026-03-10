@@ -67,6 +67,8 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional
     @BypassCacheEvict(
             patterns = {
+                    "T(com.blog.cache.CacheKeys).adminArticleListPattern()",
+                    "T(com.blog.cache.CacheKeys).adminArticleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).articleListPattern()",
                     "T(com.blog.cache.CacheKeys).articleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).feedRssPattern()",
@@ -89,6 +91,8 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional
     @BypassCacheEvict(
             patterns = {
+                    "T(com.blog.cache.CacheKeys).adminArticleListPattern()",
+                    "T(com.blog.cache.CacheKeys).adminArticleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).articleListPattern()",
                     "T(com.blog.cache.CacheKeys).articleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).feedRssPattern()",
@@ -114,6 +118,8 @@ public class ArticleServiceImpl implements ArticleService {
     @Transactional
     @BypassCacheEvict(
             patterns = {
+                    "T(com.blog.cache.CacheKeys).adminArticleListPattern()",
+                    "T(com.blog.cache.CacheKeys).adminArticleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).articleListPattern()",
                     "T(com.blog.cache.CacheKeys).articleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).feedRssPattern()",
@@ -129,6 +135,10 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).adminArticleList(#page, #size, #status, #categoryId)",
+            ttlSeconds = 120
+    )
     public Page<ArticleListVO> list(Integer page, Integer size, Integer status, Long categoryId) {
         Page<Article> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
@@ -146,6 +156,10 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).adminArticleDetail(#id)",
+            ttlSeconds = 300
+    )
     public ArticleVO detail(Long id) {
         Article article = articleMapper.selectById(id);
         if (article == null) {

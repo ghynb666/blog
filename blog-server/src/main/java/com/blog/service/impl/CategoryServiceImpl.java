@@ -29,6 +29,8 @@ public class CategoryServiceImpl implements CategoryService {
                     "T(com.blog.cache.CacheKeys).categoryList()"
             },
             patterns = {
+                    "T(com.blog.cache.CacheKeys).adminArticleListPattern()",
+                    "T(com.blog.cache.CacheKeys).adminArticleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).articleListPattern()",
                     "T(com.blog.cache.CacheKeys).articleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
@@ -49,6 +51,8 @@ public class CategoryServiceImpl implements CategoryService {
                     "T(com.blog.cache.CacheKeys).categoryList()"
             },
             patterns = {
+                    "T(com.blog.cache.CacheKeys).adminArticleListPattern()",
+                    "T(com.blog.cache.CacheKeys).adminArticleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).articleListPattern()",
                     "T(com.blog.cache.CacheKeys).articleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
@@ -69,6 +73,8 @@ public class CategoryServiceImpl implements CategoryService {
                     "T(com.blog.cache.CacheKeys).categoryList()"
             },
             patterns = {
+                    "T(com.blog.cache.CacheKeys).adminArticleListPattern()",
+                    "T(com.blog.cache.CacheKeys).adminArticleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).articleListPattern()",
                     "T(com.blog.cache.CacheKeys).articleDetailPattern()",
                     "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
