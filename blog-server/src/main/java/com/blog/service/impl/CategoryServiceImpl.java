@@ -1,6 +1,8 @@
 package com.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.blog.cache.BypassCacheEvict;
+import com.blog.cache.BypassCacheable;
 import com.blog.common.AppException;
 import com.blog.common.ErrorCode;
 import com.blog.dto.CategoryDTO;
@@ -22,6 +24,16 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryMapper categoryMapper;
 
     @Override
+    @BypassCacheEvict(
+            keys = {
+                    "T(com.blog.cache.CacheKeys).categoryList()"
+            },
+            patterns = {
+                    "T(com.blog.cache.CacheKeys).articleListPattern()",
+                    "T(com.blog.cache.CacheKeys).articleDetailPattern()",
+                    "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
+            }
+    )
     public void create(CategoryDTO dto) {
         Category category = new Category();
         BeanUtils.copyProperties(dto, category);
@@ -32,6 +44,16 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @BypassCacheEvict(
+            keys = {
+                    "T(com.blog.cache.CacheKeys).categoryList()"
+            },
+            patterns = {
+                    "T(com.blog.cache.CacheKeys).articleListPattern()",
+                    "T(com.blog.cache.CacheKeys).articleDetailPattern()",
+                    "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
+            }
+    )
     public void update(Long id, CategoryDTO dto) {
         Category category = categoryMapper.selectById(id);
         if (category == null) {
@@ -42,11 +64,25 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @BypassCacheEvict(
+            keys = {
+                    "T(com.blog.cache.CacheKeys).categoryList()"
+            },
+            patterns = {
+                    "T(com.blog.cache.CacheKeys).articleListPattern()",
+                    "T(com.blog.cache.CacheKeys).articleDetailPattern()",
+                    "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
+            }
+    )
     public void delete(Long id) {
         categoryMapper.deleteById(id);
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).categoryList()",
+            ttlSeconds = 1800
+    )
     public List<CategoryVO> list() {
         List<Category> categories = categoryMapper.selectList(new LambdaQueryWrapper<Category>().orderByAsc(Category::getSort));
         return categories.stream().map(this::toVO).collect(Collectors.toList());

@@ -2,6 +2,8 @@ package com.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.blog.cache.BypassCacheEvict;
+import com.blog.cache.BypassCacheable;
 import com.blog.common.AppException;
 import com.blog.common.ErrorCode;
 import com.blog.dto.ArticleDTO;
@@ -22,6 +24,7 @@ import com.blog.vo.ArticleListVO;
 import com.blog.vo.ArticleVO;
 import com.blog.vo.TagVO;
 import cn.dev33.satoken.stp.StpUtil;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,8 +59,23 @@ public class ArticleServiceImpl implements ArticleService {
     @Resource
     private ArticleInteractionService articleInteractionService;
 
+    @Resource
+    @Lazy
+    private ArticleService self;
+
     @Override
     @Transactional
+    @BypassCacheEvict(
+            patterns = {
+                    "T(com.blog.cache.CacheKeys).articleListPattern()",
+                    "T(com.blog.cache.CacheKeys).articleDetailPattern()",
+                    "T(com.blog.cache.CacheKeys).feedRssPattern()",
+                    "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
+            },
+            keys = {
+                    "T(com.blog.cache.CacheKeys).archiveList()"
+            }
+    )
     public void create(ArticleDTO dto) {
         Article article = new Article();
         BeanUtils.copyProperties(dto, article);
@@ -69,6 +87,17 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     @Transactional
+    @BypassCacheEvict(
+            patterns = {
+                    "T(com.blog.cache.CacheKeys).articleListPattern()",
+                    "T(com.blog.cache.CacheKeys).articleDetailPattern()",
+                    "T(com.blog.cache.CacheKeys).feedRssPattern()",
+                    "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
+            },
+            keys = {
+                    "T(com.blog.cache.CacheKeys).archiveList()"
+            }
+    )
     public void update(Long id, ArticleDTO dto) {
         Article article = articleMapper.selectById(id);
         if (article == null) {
@@ -83,6 +112,17 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     @Transactional
+    @BypassCacheEvict(
+            patterns = {
+                    "T(com.blog.cache.CacheKeys).articleListPattern()",
+                    "T(com.blog.cache.CacheKeys).articleDetailPattern()",
+                    "T(com.blog.cache.CacheKeys).feedRssPattern()",
+                    "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
+            },
+            keys = {
+                    "T(com.blog.cache.CacheKeys).archiveList()"
+            }
+    )
     public void delete(Long id) {
         articleMapper.deleteById(id);
         articleTagMapper.delete(new LambdaQueryWrapper<ArticleTag>().eq(ArticleTag::getArticleId, id));
@@ -127,6 +167,10 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).articleList(#page, #size, #keyword, #orderBy, #categoryId, #tagIds)",
+            ttlExpression = "T(com.blog.cache.CacheKeys).articleListTtl(#orderBy)"
+    )
     public Page<ArticleListVO> frontList(Integer page, Integer size, String keyword, String orderBy, Long categoryId, List<Long> tagIds) {
         List<Long> articleIdsByTags = null;
         if (!CollectionUtils.isEmpty(tagIds)) {
@@ -178,25 +222,7 @@ public class ArticleServiceImpl implements ArticleService {
     @Override
     @Transactional
     public ArticleDetailVO frontDetail(Long id, HttpServletRequest request) {
-        Article article = articleMapper.selectById(id);
-        if (article == null || article.getStatus() != 1) {
-            throw new AppException(ErrorCode.ARTICLE_NOT_FOUND);
-        }
-
-        ArticleDetailVO vo = new ArticleDetailVO();
-        BeanUtils.copyProperties(article, vo);
-        Category category = categoryMapper.selectById(article.getCategoryId());
-        if (category != null) {
-            vo.setCategoryName(category.getName());
-        }
-        List<ArticleTag> articleTags = articleTagMapper.selectList(new LambdaQueryWrapper<ArticleTag>().eq(ArticleTag::getArticleId, id));
-        if (!CollectionUtils.isEmpty(articleTags)) {
-            List<Long> tagIds = articleTags.stream().map(ArticleTag::getTagId).collect(Collectors.toList());
-            List<Tag> tags = tagMapper.selectBatchIds(tagIds);
-            vo.setTags(tags.stream().map(this::toTagVO).collect(Collectors.toList()));
-        }
-        vo.setCreatedAt(article.getCreatedAt());
-        vo.setUpdatedAt(article.getUpdatedAt());
+        ArticleDetailVO vo = self.getFrontDetailSnapshot(id);
 
         Long currentUserId = null;
         try {
@@ -216,6 +242,38 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).articleDetail(#id)",
+            ttlSeconds = 60
+    )
+    public ArticleDetailVO getFrontDetailSnapshot(Long id) {
+        Article article = articleMapper.selectById(id);
+        if (article == null || article.getStatus() != 1) {
+            throw new AppException(ErrorCode.ARTICLE_NOT_FOUND);
+        }
+
+        ArticleDetailVO vo = new ArticleDetailVO();
+        BeanUtils.copyProperties(article, vo);
+        Category category = categoryMapper.selectById(article.getCategoryId());
+        if (category != null) {
+            vo.setCategoryName(category.getName());
+        }
+        List<ArticleTag> articleTags = articleTagMapper.selectList(new LambdaQueryWrapper<ArticleTag>().eq(ArticleTag::getArticleId, id));
+        if (!CollectionUtils.isEmpty(articleTags)) {
+            List<Long> tagIds = articleTags.stream().map(ArticleTag::getTagId).collect(Collectors.toList());
+            List<Tag> tags = tagMapper.selectBatchIds(tagIds);
+            vo.setTags(tags.stream().map(this::toTagVO).collect(Collectors.toList()));
+        }
+        vo.setCreatedAt(article.getCreatedAt());
+        vo.setUpdatedAt(article.getUpdatedAt());
+        return vo;
+    }
+
+    @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).archiveList()",
+            ttlSeconds = 600
+    )
     public List<ArchiveVO> archives() {
         LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(Article::getStatus, 1).orderByDesc(Article::getCreatedAt);

@@ -1,6 +1,8 @@
 package com.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.blog.cache.BypassCacheable;
+import com.blog.cache.CacheKeys;
 import com.blog.entity.Article;
 import com.blog.entity.Category;
 import com.blog.entity.Tag;
@@ -29,6 +31,10 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).feedSitemap(#request)",
+            ttlSeconds = 1800
+    )
     public String buildSitemap(HttpServletRequest request) {
         String baseUrl = buildBaseUrl(request);
         StringBuilder xml = new StringBuilder();
@@ -55,6 +61,10 @@ public class FeedServiceImpl implements FeedService {
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).feedRss(#request)",
+            ttlSeconds = 600
+    )
     public String buildRss(HttpServletRequest request) {
         String baseUrl = buildBaseUrl(request);
         List<Article> articles = articleMapper.selectList(new LambdaQueryWrapper<Article>()
@@ -93,14 +103,7 @@ public class FeedServiceImpl implements FeedService {
     }
 
     private String buildBaseUrl(HttpServletRequest request) {
-        StringBuilder builder = new StringBuilder();
-        builder.append(request.getScheme()).append("://").append(request.getServerName());
-        boolean isDefaultPort = ("http".equalsIgnoreCase(request.getScheme()) && request.getServerPort() == 80)
-                || ("https".equalsIgnoreCase(request.getScheme()) && request.getServerPort() == 443);
-        if (!isDefaultPort) {
-            builder.append(":").append(request.getServerPort());
-        }
-        return builder.toString();
+        return CacheKeys.baseUrl(request);
     }
 
     private String escapeXml(String value) {

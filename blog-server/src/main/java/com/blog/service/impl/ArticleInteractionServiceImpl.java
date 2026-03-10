@@ -1,6 +1,8 @@
 package com.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.blog.cache.BypassCacheEvict;
+import com.blog.cache.BypassCacheable;
 import com.blog.common.AppException;
 import com.blog.common.ErrorCode;
 import com.blog.dto.CommentCreateDTO;
@@ -16,6 +18,7 @@ import com.blog.service.ArticleInteractionService;
 import com.blog.service.GrowthEventService;
 import com.blog.vo.ArticleCommentVO;
 import com.blog.vo.ArticleInteractionVO;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -33,22 +36,29 @@ public class ArticleInteractionServiceImpl implements ArticleInteractionService 
     private final ArticleLikeMapper articleLikeMapper;
     private final UserMapper userMapper;
     private final GrowthEventService growthEventService;
+    private final ArticleInteractionService self;
 
     public ArticleInteractionServiceImpl(
             ArticleMapper articleMapper,
             ArticleCommentMapper articleCommentMapper,
             ArticleLikeMapper articleLikeMapper,
             UserMapper userMapper,
-            GrowthEventService growthEventService
+            GrowthEventService growthEventService,
+            @Lazy ArticleInteractionService self
     ) {
         this.articleMapper = articleMapper;
         this.articleCommentMapper = articleCommentMapper;
         this.articleLikeMapper = articleLikeMapper;
         this.userMapper = userMapper;
         this.growthEventService = growthEventService;
+        this.self = self;
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).commentTree(#articleId)",
+            ttlSeconds = 120
+    )
     public List<ArticleCommentVO> listComments(Long articleId) {
         assertArticleAvailable(articleId);
         List<ArticleComment> comments = articleCommentMapper.selectList(new LambdaQueryWrapper<ArticleComment>()
@@ -87,6 +97,12 @@ public class ArticleInteractionServiceImpl implements ArticleInteractionService 
 
     @Override
     @Transactional
+    @BypassCacheEvict(
+            keys = {
+                    "T(com.blog.cache.CacheKeys).commentTree(#articleId)",
+                    "T(com.blog.cache.CacheKeys).interactionPublic(#articleId)"
+            }
+    )
     public ArticleCommentVO createComment(Long articleId, Long userId, CommentCreateDTO dto) {
         assertArticleAvailable(articleId);
         growthEventService.assertCooldown("article_commented", userId, 15, ErrorCode.COMMENT_TOO_FREQUENT);
@@ -116,6 +132,11 @@ public class ArticleInteractionServiceImpl implements ArticleInteractionService 
 
     @Override
     @Transactional
+    @BypassCacheEvict(
+            keys = {
+                    "T(com.blog.cache.CacheKeys).interactionPublic(#articleId)"
+            }
+    )
     public ArticleInteractionVO toggleLike(Long articleId, Long userId) {
         assertArticleAvailable(articleId);
         ArticleLike existed = articleLikeMapper.selectOne(new LambdaQueryWrapper<ArticleLike>()
@@ -138,9 +159,29 @@ public class ArticleInteractionServiceImpl implements ArticleInteractionService 
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).interactionPublic(#articleId)",
+            ttlSeconds = 120
+    )
+    public ArticleInteractionVO getPublicInteraction(Long articleId) {
+        assertArticleAvailable(articleId);
+        ArticleInteractionVO vo = new ArticleInteractionVO();
+        vo.setArticleId(articleId);
+        vo.setCommentCount(articleCommentMapper.selectCount(new LambdaQueryWrapper<ArticleComment>()
+                .eq(ArticleComment::getArticleId, articleId)
+                .eq(ArticleComment::getStatus, 1)));
+        vo.setLikeCount(articleLikeMapper.selectCount(new LambdaQueryWrapper<ArticleLike>()
+                .eq(ArticleLike::getArticleId, articleId)));
+        vo.setLiked(false);
+        return vo;
+    }
+
+    @Override
     public ArticleInteractionVO getInteraction(Long articleId, Long userId) {
         assertArticleAvailable(articleId);
-        return buildInteraction(articleId, userId, hasLiked(articleId, userId));
+        ArticleInteractionVO vo = self.getPublicInteraction(articleId);
+        vo.setLiked(hasLiked(articleId, userId));
+        return vo;
     }
 
     private void assertArticleAvailable(Long articleId) {

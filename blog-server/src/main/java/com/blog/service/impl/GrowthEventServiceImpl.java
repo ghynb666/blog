@@ -1,6 +1,8 @@
 package com.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.blog.cache.BypassCacheEvict;
+import com.blog.cache.BypassCacheable;
 import com.blog.common.AppException;
 import com.blog.common.ErrorCode;
 import com.blog.entity.GrowthEvent;
@@ -26,6 +28,11 @@ public class GrowthEventServiceImpl implements GrowthEventService {
     }
 
     @Override
+    @BypassCacheEvict(
+            patterns = {
+                    "T(com.blog.cache.CacheKeys).analyticsOverviewPattern()"
+            }
+    )
     public void record(String eventType, Long userId, Long articleId, String eventData) {
         GrowthEvent event = new GrowthEvent();
         event.setEventType(eventType);
@@ -51,6 +58,10 @@ public class GrowthEventServiceImpl implements GrowthEventService {
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).analyticsOverview(#days)",
+            ttlSeconds = 60
+    )
     public AnalyticsOverviewVO buildOverview(int days) {
         List<String> types = List.of(
                 "user_registered",

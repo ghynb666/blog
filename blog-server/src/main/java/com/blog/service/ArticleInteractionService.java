@@ -14,5 +14,7 @@ public interface ArticleInteractionService {
 
     ArticleInteractionVO toggleLike(Long articleId, Long userId);
 
+    ArticleInteractionVO getPublicInteraction(Long articleId);
+
     ArticleInteractionVO getInteraction(Long articleId, Long userId);
 }

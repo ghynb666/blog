@@ -1,6 +1,8 @@
 package com.blog.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.blog.cache.BypassCacheEvict;
+import com.blog.cache.BypassCacheable;
 import com.blog.common.AppException;
 import com.blog.common.ErrorCode;
 import com.blog.dto.TagDTO;
@@ -22,6 +24,16 @@ public class TagServiceImpl implements TagService {
     private TagMapper tagMapper;
 
     @Override
+    @BypassCacheEvict(
+            keys = {
+                    "T(com.blog.cache.CacheKeys).tagList()"
+            },
+            patterns = {
+                    "T(com.blog.cache.CacheKeys).articleListPattern()",
+                    "T(com.blog.cache.CacheKeys).articleDetailPattern()",
+                    "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
+            }
+    )
     public void create(TagDTO dto) {
         Tag tag = new Tag();
         BeanUtils.copyProperties(dto, tag);
@@ -29,6 +41,16 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @BypassCacheEvict(
+            keys = {
+                    "T(com.blog.cache.CacheKeys).tagList()"
+            },
+            patterns = {
+                    "T(com.blog.cache.CacheKeys).articleListPattern()",
+                    "T(com.blog.cache.CacheKeys).articleDetailPattern()",
+                    "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
+            }
+    )
     public void update(Long id, TagDTO dto) {
         Tag tag = tagMapper.selectById(id);
         if (tag == null) {
@@ -39,11 +61,25 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @BypassCacheEvict(
+            keys = {
+                    "T(com.blog.cache.CacheKeys).tagList()"
+            },
+            patterns = {
+                    "T(com.blog.cache.CacheKeys).articleListPattern()",
+                    "T(com.blog.cache.CacheKeys).articleDetailPattern()",
+                    "T(com.blog.cache.CacheKeys).feedSitemapPattern()"
+            }
+    )
     public void delete(Long id) {
         tagMapper.deleteById(id);
     }
 
     @Override
+    @BypassCacheable(
+            key = "T(com.blog.cache.CacheKeys).tagList()",
+            ttlSeconds = 1800
+    )
     public List<TagVO> list() {
         List<Tag> tags = tagMapper.selectList(new LambdaQueryWrapper<Tag>().orderByDesc(Tag::getCreatedAt));
         return tags.stream().map(this::toVO).collect(Collectors.toList());

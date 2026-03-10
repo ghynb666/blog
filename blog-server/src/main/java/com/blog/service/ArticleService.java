@@ -26,6 +26,8 @@ public interface ArticleService {
 
     ArticleDetailVO frontDetail(Long id, HttpServletRequest request);
 
+    ArticleDetailVO getFrontDetailSnapshot(Long id);
+
     List<ArchiveVO> archives();
 
     void incrementViewCount(Long id);
